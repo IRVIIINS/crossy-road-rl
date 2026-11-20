@@ -2,6 +2,7 @@
 import argparse, os, time
 import numpy as np
 from crossy_env import CrossyEnv
+from expo_sim import ExpoCrossySim
 from dqn_agent import DQNAgent
 
 p = argparse.ArgumentParser()
@@ -9,11 +10,15 @@ p.add_argument("--episodes", type=int, default=5000)
 p.add_argument("--max-steps", type=int, default=1500)
 p.add_argument("--out", default="models")
 p.add_argument("--seed", type=int, default=0)
+p.add_argument("--resume", default=None, help="continue from a saved .pt (starts with low exploration)")
+p.add_argument("--env", choices=["grid", "expo"], default="grid", help="grid = our simple game, expo = rules of expo-crossy-road")
 a = p.parse_args()
 
 os.makedirs(a.out, exist_ok=True)
-env = CrossyEnv(a.seed)
+env = ExpoCrossySim(a.seed) if a.env == "expo" else CrossyEnv(a.seed)
 agent = DQNAgent(env.obs_size, env.n_actions)
+if a.resume:
+    agent.load(a.resume); agent.steps = agent.eps_decay
 print("device:", agent.device)
 scores, best_avg, t0 = [], -1, time.time()
 for ep in range(1, a.episodes + 1):
