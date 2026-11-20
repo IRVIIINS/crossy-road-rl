@@ -6,7 +6,7 @@ Same layout as the Flappy Bird project: game -> env -> DQN agent -> train/evalua
 |---|---|
 | `crossy_game.py` | game rules (grass / road with cars / river with logs), no pygame needed |
 | `crossy_env.py` | Gym-style `reset()/step()`; observation = 9x9-wide, 9-row window centred on the player |
-| `crossy_render.py` | pygame drawing |
+| `crossy_render.py` | pygame drawing: anti-aliased art, smooth 120 fps animation (hopping chicken, sliding cars/logs, gliding camera) |
 | `play.py` | play it yourself (arrows/WASD, space = wait, R = restart) |
 | `dqn_agent.py` | Double DQN, replay buffer, target network |
 | `train_dqn.py` | `python train_dqn.py --episodes 5000` (uses CUDA automatically) |

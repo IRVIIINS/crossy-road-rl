@@ -25,6 +25,8 @@ class Lane:
         self.offset = 0
         self.trees = set()
         self.objs = set()     # car or log cells
+        self.moved_t = -1     # tick this lane last moved (used by the renderer for smooth animation)
+        self.seed = int(rng.integers(0, 1 << 30))  # cosmetic only (colors, decoration)
         if kind == GRASS:
             n = rng.integers(0, 4)
             self.trees = set(int(c) for c in rng.choice(W, size=n, replace=False))
@@ -46,6 +48,7 @@ class Lane:
         if self.kind == GRASS or (t + self.offset) % self.period != 0:
             return 0
         self.objs = {(c + self.dir) % W for c in self.objs}
+        self.moved_t = t
         return self.dir
 
 
