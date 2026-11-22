@@ -32,3 +32,9 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 * `expo-game/src/ai/` – observation builder + network + autopilot. Run it: `cd expo-game && npm install && npx expo start --web`, then open the page with `?ai=1` (or press **P**). See `expo-game/AI_AUTOPILOT.md`.
 
 `models/expo_best.pt` scores about 24 rows on average in the simulator (random play: about 1.4; best run 104). Not tested inside the real game yet; train trains/rail rows are not modelled.
+
+## Native Mac app (double-click, no terminal)
+
+`./build_mac.sh` builds `dist/Crossy Road AI.app` with PyInstaller (native arm64 on Apple Silicon). It has a menu to play yourself or watch the AI,
+and needs no PyTorch at runtime (`models/grid_best.npz` is the exported network; regenerate with `python export_numpy.py models/best.pt models/grid_best.npz`).
+Quick run without building: `python native_app.py`.

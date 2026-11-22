@@ -77,7 +77,7 @@ class Renderer:
         return events
 
     # ------------------------------------------------------------------ frame
-    def frame(self, fps=120):
+    def frame(self, fps=120, overlay=None):
         g = self.g
         now = time.perf_counter()
         dt = min(0.05, now - self.last)
@@ -104,6 +104,8 @@ class Renderer:
         self.p = p
         self.now = now
         self._draw(dt)
+        if overlay:
+            overlay(self)
         pygame.transform.smoothscale(self.canvas, self.size, self.screen)
         pygame.display.flip()
         self.clock.tick(fps)
