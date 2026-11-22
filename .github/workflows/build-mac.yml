@@ -1,0 +1,35 @@
+name: Build Mac app
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14          # Apple Silicon (arm64)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the .app
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pygame-ce pyinstaller
+          SDL_VIDEODRIVER=dummy python native_app.py --selftest
+          pyinstaller --noconfirm --windowed --name "Crossy Road AI" \
+            --add-data "models/grid_best.npz:models" native_app.py
+          ditto -c -k --keepParent "dist/Crossy Road AI.app" CrossyRoadAI-mac.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CrossyRoadAI-mac
+          path: CrossyRoadAI-mac.zip
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" CrossyRoadAI-mac.zip --title "Crossy Road AI ${{ github.ref_name }}" --notes "Download CrossyRoadAI-mac.zip, unzip it, then right-click 'Crossy Road AI' and choose Open the first time."
