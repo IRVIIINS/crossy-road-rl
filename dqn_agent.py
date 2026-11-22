@@ -20,7 +20,7 @@ class QNet(nn.Module):
 class DQNAgent:
     def __init__(self, obs_size, n_actions, lr=5e-4, gamma=0.97, buffer=100_000,
                  batch=128, eps_start=1.0, eps_end=0.05, eps_decay_steps=50_000,
-                 target_sync=1000, device=None):
+                 target_sync=1000, device=None, double=True):
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
         self.q = QNet(obs_size, n_actions).to(self.device)
         self.target = QNet(obs_size, n_actions).to(self.device)
@@ -30,6 +30,7 @@ class DQNAgent:
         self.n_actions, self.gamma, self.batch = n_actions, gamma, batch
         self.eps_start, self.eps_end, self.eps_decay = eps_start, eps_end, eps_decay_steps
         self.target_sync = target_sync
+        self.double = double          # False = vanilla DQN target (ablation)
         self.steps = 0
 
     @property
@@ -59,9 +60,12 @@ class DQNAgent:
         r = torch.as_tensor(r, dtype=torch.float32, device=dev)
         d = torch.as_tensor(d, dtype=torch.float32, device=dev)
         q = self.q(s).gather(1, a).squeeze(1)
-        with torch.no_grad():  # Double DQN target
-            best = self.q(s2).argmax(1, keepdim=True)
-            nxt = self.target(s2).gather(1, best).squeeze(1)
+        with torch.no_grad():
+            if self.double:   # Double DQN: online net picks the action, target net scores it
+                best = self.q(s2).argmax(1, keepdim=True)
+                nxt = self.target(s2).gather(1, best).squeeze(1)
+            else:             # vanilla DQN: target net both picks and scores
+                nxt = self.target(s2).max(1).values
             y = r + self.gamma * nxt * (1 - d)
         loss = nn.functional.smooth_l1_loss(q, y)
         self.opt.zero_grad(); loss.backward()

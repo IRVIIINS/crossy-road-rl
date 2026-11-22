@@ -8,3 +8,7 @@ desktop/package-lock.json
 .buildenv/
 build/
 dist/
+
+# experiment runs: keep logs/csv/best model, drop per-iteration checkpoints
+runs/*/checkpoints/
+runs/*/final.pt

@@ -20,6 +20,7 @@ function buildMenu() {
         { label: "Main menu", accelerator: "CmdOrCtrl+M", click: () => win.loadURL(url(null)) },
         { label: "You vs AI", accelerator: "CmdOrCtrl+1", click: () => win.loadURL(url("you-vs-ai")) },
         { label: "AI vs AI", accelerator: "CmdOrCtrl+2", click: () => win.loadURL(url("ai-vs-ai")) },
+        { label: "Settings / data", accelerator: "CmdOrCtrl+,", click: () => win.loadURL(url("settings")) },
         { type: "separator" },
         { role: "togglefullscreen" },
         { role: "reload" },

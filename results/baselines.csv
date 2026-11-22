@@ -1,0 +1,4 @@
+policy,test_mean,test_std,test_median,test_max
+random actions,1.36,1.273,1.0,6
+always press UP,3.03,2.37,2.0,14
+hand-written reactive rule,4.64,4.029,3.0,21

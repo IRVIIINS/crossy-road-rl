@@ -2,8 +2,11 @@ import React from "react";
 import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import GameView from "@/GameView";
+import SettingsScreen from "@/SettingsScreen";
+import { addMatch } from "@/matchLog";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
+type Screen = Mode | "settings";
 
 const outline = (w: number) =>
   Platform.select({
@@ -13,18 +16,19 @@ const outline = (w: number) =>
     default: {},
   }) as any;
 
-function initialMode(): Mode | null {
+function initialMode(): Screen | null {
   try {
     const m = new URLSearchParams(window.location.search).get("mode");
-    return m === "you-vs-ai" || m === "ai-vs-ai" ? m : null;
+    return m === "you-vs-ai" || m === "ai-vs-ai" || m === "settings" ? m : null;
   } catch {
     return null;
   }
 }
 
 export default function Root() {
-  const [mode, setMode] = React.useState<Mode | null>(initialMode);
+  const [mode, setMode] = React.useState<Screen | null>(initialMode);
   if (!mode) return <Menu onPick={setMode} />;
+  if (mode === "settings") return <SettingsScreen onExit={() => setMode(null)} />;
   return <Arena mode={mode} onExit={() => setMode(null)} />;
 }
 
@@ -37,11 +41,12 @@ function Button({ label, hint, onPress }) {
   );
 }
 
-function Menu({ onPick }: { onPick: (m: Mode) => void }) {
+function Menu({ onPick }: { onPick: (m: Screen) => void }) {
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Digit1" || e.code === "Numpad1") onPick("you-vs-ai");
       if (e.code === "Digit2" || e.code === "Numpad2") onPick("ai-vs-ai");
+      if (e.code === "Digit3" || e.code === "Numpad3") onPick("settings");
     };
     window.addEventListener("keyup", onKey);
     return () => window.removeEventListener("keyup", onKey);
@@ -51,6 +56,7 @@ function Menu({ onPick }: { onPick: (m: Mode) => void }) {
       <Image source={require("../../assets/images/title.png")} style={styles.title} />
       <Button label="YOU vs AI" hint="1" onPress={() => onPick("you-vs-ai")} />
       <Button label="AI vs AI" hint="2" onPress={() => onPick("ai-vs-ai")} />
+      <Button label="SETTINGS" hint="3 · data for your report" onPress={() => onPick("settings")} />
     </View>
   );
 }
@@ -90,6 +96,18 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
     const [a, b] = scores as number[];
     result = a === b ? "TIE" : `${a > b ? names[0] : names[1]} WIN${names[a > b ? 0 : 1] === "YOU" ? "" : "S"}`;
   }
+
+  // log every finished round so it can be exported from Settings
+  React.useEffect(() => {
+    if (!bothDone) return;
+    const [a, b] = scores as number[];
+    addMatch({
+      time: new Date().toISOString(), mode,
+      left: names[0], right: names[1], leftScore: a, rightScore: b,
+      winner: a === b ? "TIE" : a > b ? names[0] : names[1],
+      leftSeed: seeds[0], rightSeed: seeds[1],
+    });
+  }, [bothDone, round]);
 
   return (
     <View style={styles.arena}>

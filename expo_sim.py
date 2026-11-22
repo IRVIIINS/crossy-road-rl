@@ -91,9 +91,14 @@ class ExpoCrossySim:
     n_actions = 5
     obs_size = OBS_SIZE
 
-    def __init__(self, seed=None, max_idle=25):
+    def __init__(self, seed=None, max_idle=25, future=FUTURE):
+        """future: frame offsets of the occupancy planes in the observation. (0, 6, 12) is the full model;
+        (0,) is the ablation that only sees where cars/logs are *right now* (no look-ahead)."""
         self.rng = random.Random(seed)
         self.max_idle = max_idle
+        self.future = tuple(future)
+        self.obs_per_row = 4 + 9 + BINS * len(self.future) + 1
+        self.obs_size = VIEW_ROWS * self.obs_per_row + 1
         self.reset()
 
     def row(self, z):
@@ -204,7 +209,7 @@ class ExpoCrossySim:
 
     # ------------------------------------------------------------- observation
     def obs(self):
-        o = np.zeros((VIEW_ROWS, OBS_PER_ROW), dtype=np.float32)
+        o = np.zeros((VIEW_ROWS, self.obs_per_row), dtype=np.float32)
         hx = self.x
         cols = [int(round(hx)) + k for k in range(-4, 5)]
         for i, z in enumerate(range(self.z - BACK, self.z + AHEAD + 1)):
@@ -218,11 +223,11 @@ class ExpoCrossySim:
                 if r.kind == GRASS and int(c) in r.trees: o[i, 4 + j] = 1.0
                 if abs(c) > 4: o[i, 4 + j] = 1.0
             if r.ents:
-                for f, df in enumerate(FUTURE):
+                for f, df in enumerate(self.future):
                     for k in range(BINS):
                         bx = hx + (k - 8) * 0.5
                         if r.hit(bx, self.frame + df) >= 0:
                             o[i, 13 + f * BINS + k] = 1.0
             if r.kind in (ROAD, WATER_LOG):
-                o[i, 13 + BINS * len(FUTURE)] = r.dir * r.speed / 0.08
+                o[i, 13 + BINS * len(self.future)] = r.dir * r.speed / 0.08
         return np.concatenate([o.ravel(), np.array([hx / 5.0], dtype=np.float32)])

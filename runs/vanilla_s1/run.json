@@ -1,0 +1,32 @@
+{
+  "config": {
+    "env": "expo",
+    "out": "runs/vanilla_s1",
+    "seed": 1,
+    "episodes_per_iter": 200,
+    "max_iters": 50,
+    "max_steps": 1500,
+    "eval_episodes": 50,
+    "eps_decay": 50000,
+    "target_mean": 30.0,
+    "target_min": 10,
+    "patience": 999,
+    "min_iters": 30,
+    "no_future": false,
+    "vanilla": true,
+    "future": [
+      0,
+      6,
+      12
+    ],
+    "obs_size": 521,
+    "double": false
+  },
+  "stop_reason": "max_iters",
+  "best_eval_mean": 19.48,
+  "best_iteration": 48,
+  "iterations": 50,
+  "episodes": 10000,
+  "steps": 393380,
+  "seconds": 1509.6
+}

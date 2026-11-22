@@ -52,3 +52,17 @@ v3 is in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (
 `./build_mac.sh` builds `dist/Crossy Road AI.app` (the v2 app, locally) with PyInstaller (native arm64 on Apple Silicon). It has a menu to play yourself or watch the AI,
 and needs no PyTorch at runtime (`models/grid_best.npz` is the exported network; regenerate with `python export_numpy.py models/best.pt models/grid_best.npz`).
 Quick run without building: `python native_app.py`.
+
+## Experiments, results and documentation (for the report)
+
+| File | What |
+|---|---|
+| `train_iterative.py` | iterative training: rounds of 200 episodes, fixed-seed evaluation, checkpoints, best model, early stopping |
+| `run_experiments.py` | ablation study: look-ahead on/off, Double vs vanilla DQN, 3 seeds each |
+| `make_report.py` | held-out test + baselines -> `results/` (tables, CSVs, figures, `summary.json`) |
+| `results/` | `tables.md`, `learning_curves.png`, `ablation_bar.png`, `death_causes.png`, `score_distribution.png`, CSVs |
+| `runs/` | per-run logs, `iterations.csv`, `episodes.csv`, `best.pt`, learning curves |
+| `DOCUMENTATION.md` | how everything works |
+| `REPORT_GUIDE.md` | course requirements mapped to this project, headline results, presentation outline |
+
+The app's **Settings** screen shows these results and exports them (CSV / JSON / PNG), plus a log of every round played in the app.

@@ -1,0 +1,51 @@
+[no_future_s2] it  1 ep   200 eps 0.93 | train   1.3 | eval   3.9± 2.3 max  11 * | 6s
+[no_future_s2] it  2 ep   400 eps 0.86 | train   1.5 | eval   3.6± 2.5 max  13 | 15s
+[no_future_s2] it  3 ep   600 eps 0.78 | train   1.8 | eval   3.7± 2.7 max  13 | 27s
+[no_future_s2] it  4 ep   800 eps 0.70 | train   2.0 | eval   4.1± 2.7 max  16 * | 39s
+[no_future_s2] it  5 ep  1000 eps 0.61 | train   2.0 | eval   3.6± 3.1 max  16 | 52s
+[no_future_s2] it  6 ep  1200 eps 0.54 | train   2.3 | eval   4.2± 3.3 max  15 * | 63s
+[no_future_s2] it  7 ep  1400 eps 0.45 | train   2.4 | eval   3.8± 2.5 max  11 | 76s
+[no_future_s2] it  8 ep  1600 eps 0.37 | train   2.5 | eval   3.0± 2.2 max  11 | 88s
+[no_future_s2] it  9 ep  1800 eps 0.28 | train   2.4 | eval   3.1± 1.9 max  10 | 103s
+[no_future_s2] it 10 ep  2000 eps 0.18 | train   2.6 | eval   2.6± 1.9 max  10 | 121s
+[no_future_s2] it 11 ep  2200 eps 0.06 | train   3.2 | eval   3.3± 2.8 max  15 | 141s
+[no_future_s2] it 12 ep  2400 eps 0.05 | train   3.0 | eval   3.0± 2.4 max  15 | 162s
+[no_future_s2] it 13 ep  2600 eps 0.05 | train   2.9 | eval   3.2± 2.5 max  12 | 184s
+[no_future_s2] it 14 ep  2800 eps 0.05 | train   2.8 | eval   4.0± 3.0 max  12 | 203s
+[no_future_s2] it 15 ep  3000 eps 0.05 | train   3.2 | eval   3.7± 2.9 max  18 | 226s
+[no_future_s2] it 16 ep  3200 eps 0.05 | train   3.1 | eval   4.6± 3.7 max  16 * | 247s
+[no_future_s2] it 17 ep  3400 eps 0.05 | train   3.2 | eval   3.6± 2.1 max  10 | 266s
+[no_future_s2] it 18 ep  3600 eps 0.05 | train   3.2 | eval   4.7± 3.5 max  16 * | 286s
+[no_future_s2] it 19 ep  3800 eps 0.05 | train   3.5 | eval   4.0± 2.8 max  14 | 306s
+[no_future_s2] it 20 ep  4000 eps 0.05 | train   3.7 | eval   4.6± 3.3 max  16 | 328s
+[no_future_s2] it 21 ep  4200 eps 0.05 | train   3.7 | eval   4.2± 2.7 max  12 | 347s
+[no_future_s2] it 22 ep  4400 eps 0.05 | train   4.1 | eval   4.8± 2.6 max  13 * | 369s
+[no_future_s2] it 23 ep  4600 eps 0.05 | train   4.1 | eval   5.1± 3.9 max  17 * | 391s
+[no_future_s2] it 24 ep  4800 eps 0.05 | train   4.6 | eval   5.6± 4.4 max  20 * | 412s
+[no_future_s2] it 25 ep  5000 eps 0.05 | train   4.6 | eval   5.3± 3.3 max  17 | 431s
+[no_future_s2] it 26 ep  5200 eps 0.05 | train   5.0 | eval   5.1± 3.3 max  16 | 450s
+[no_future_s2] it 27 ep  5400 eps 0.05 | train   4.9 | eval   6.4± 4.8 max  26 * | 468s
+[no_future_s2] it 28 ep  5600 eps 0.05 | train   5.0 | eval   6.7± 5.5 max  27 * | 490s
+[no_future_s2] it 29 ep  5800 eps 0.05 | train   4.5 | eval   5.9± 4.0 max  18 | 509s
+[no_future_s2] it 30 ep  6000 eps 0.05 | train   4.8 | eval   5.3± 4.5 max  26 | 527s
+[no_future_s2] it 31 ep  6200 eps 0.05 | train   4.9 | eval   5.5± 3.9 max  17 | 548s
+[no_future_s2] it 32 ep  6400 eps 0.05 | train   5.3 | eval   5.7± 3.8 max  17 | 569s
+[no_future_s2] it 33 ep  6600 eps 0.05 | train   5.3 | eval   6.9± 4.2 max  18 * | 593s
+[no_future_s2] it 34 ep  6800 eps 0.05 | train   5.3 | eval   5.6± 4.0 max  24 | 616s
+[no_future_s2] it 35 ep  7000 eps 0.05 | train   5.2 | eval   8.8± 7.4 max  32 * | 637s
+[no_future_s2] it 36 ep  7200 eps 0.05 | train   5.7 | eval   6.8± 4.5 max  21 | 659s
+[no_future_s2] it 37 ep  7400 eps 0.05 | train   5.4 | eval   7.1± 4.7 max  22 | 679s
+[no_future_s2] it 38 ep  7600 eps 0.05 | train   5.7 | eval   7.2± 5.6 max  28 | 703s
+[no_future_s2] it 39 ep  7800 eps 0.05 | train   6.0 | eval   7.1± 4.4 max  18 | 727s
+[no_future_s2] it 40 ep  8000 eps 0.05 | train   6.0 | eval   5.8± 4.0 max  21 | 756s
+[no_future_s2] it 41 ep  8200 eps 0.05 | train   5.8 | eval   7.4± 5.9 max  37 | 780s
+[no_future_s2] it 42 ep  8400 eps 0.05 | train   6.5 | eval   6.4± 3.6 max  17 | 808s
+[no_future_s2] it 43 ep  8600 eps 0.05 | train   7.0 | eval   8.1± 5.5 max  22 | 831s
+[no_future_s2] it 44 ep  8800 eps 0.05 | train   6.0 | eval   7.0± 5.1 max  28 | 851s
+[no_future_s2] it 45 ep  9000 eps 0.05 | train   6.5 | eval   7.8± 5.4 max  27 | 875s
+[no_future_s2] it 46 ep  9200 eps 0.05 | train   6.9 | eval   6.8± 4.3 max  17 | 904s
+[no_future_s2] it 47 ep  9400 eps 0.05 | train   6.5 | eval   8.7± 6.8 max  31 | 926s
+[no_future_s2] it 48 ep  9600 eps 0.05 | train   6.3 | eval   8.0± 5.5 max  23 | 951s
+[no_future_s2] it 49 ep  9800 eps 0.05 | train   6.6 | eval   8.1± 5.5 max  28 | 975s
+[no_future_s2] it 50 ep 10000 eps 0.05 | train   7.1 | eval   7.6± 4.3 max  18 | 1001s
+done: max_iters, best eval mean 8.80 at iteration 35
