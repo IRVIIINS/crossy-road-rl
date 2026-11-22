@@ -94,16 +94,28 @@ timing differs slightly. This is worth a paragraph in the report (domain gap) an
 Settings = data screen: experiment tables/figures with CSV/JSON/PNG downloads, plus a log of every round played in the app
 (`matches.csv`). Release builds come from `.github/workflows/build-mac.yml`.
 
-## 4c. Online learning in the app (what is saved from each game)
+## 4c. Online learning in the app (opt-in) and what the experiment showed
 
-The player AI keeps learning inside the desktop app. Every decision of every AI pane (one per 12 game frames) is stored as a
-transition `(observation, action, reward, next observation, done)` with the same reward as training (-0.02 per step, +1 per new row,
--1 on death). When a round ends the app runs 30-150 Double-DQN updates (Huber loss, Adam, lr 1e-4, batch 32, target sync every 50
-updates, replay buffer of the last 6000 moves, exploration eps = 0.05 while learning) and saves the new weights (`localStorage`,
-key `crossy.brain.v1`, about 0.9 MB) plus one log row per round (`crossy.learning.v1`: round, games, mean score, moves, updates, loss).
-Settings > "What the AI has learned" shows the log and offers `learning_log.csv`, `learned_weights.json`, a learning ON/OFF switch and
-"Reset AI to original". Code: `expo-game/src/ai/brain.ts`; hooks in `AutoPilot.ts` and `GameEngine.gameOver`.
-`expo-game/tests/brain_parity.test.ts` checks that three TypeScript updates match PyTorch (`tests/make_brain_case.py`) to 5e-7.
+The app can keep training the player AI from the games it plays. Every decision of every AI pane (one per 12 game frames) is stored as a
+transition `(observation, action, reward, next observation, done)` with the same reward as training (-0.02 per step, +1 per new row, -1 on
+death). When a round ends the app runs 30-150 Double-DQN updates (Huber loss, Adam lr 1e-4, batch 32, target sync every 50 updates, replay
+buffer of the last 6000 moves, 5% random moves) and saves the new weights (`localStorage` key `crossy.brain.v1`, about 0.9 MB) plus one log
+row per round (`crossy.learning.v1`). Settings > "What the AI has learned" shows the log and offers `learning_log.csv`,
+`learned_weights.json`, a learning ON/OFF switch and "Reset AI to original". Code: `expo-game/src/ai/brain.ts`; hooks in `AutoPilot.ts` and
+`GameEngine.gameOver`. `expo-game/tests/brain_parity.test.ts` checks that three TypeScript updates match PyTorch (`tests/make_brain_case.py`) to 5e-7.
 
-Limits: only the player AI learns (the level maker is fixed); the replay buffer is not saved between sessions (the weights are);
-whether it improves over many rounds has not been measured, and fine-tuning on a few games can also make it worse, hence the reset button.
+**Result: this naive online fine-tuning makes the AI worse, so it is OFF by default.** `online_learning_experiment.py` runs the same loop in the
+simulator (2 games per round on level-maker levels, 3 seeds, 150 rounds) and tests the greedy policy on 100 held-out seeds
+(`results/online_learning.csv/.png`):
+
+| rounds | 0 | 25 | 50 | 75 | 100 | 125 | 150 |
+|---|---|---|---|---|---|---|---|
+| random levels (rows) | 27.2 | 18.7 | 12.9 | 13.8 | 12.5 | 10.9 | 9.7 |
+| level-maker levels (rows) | 7.7 | 6.0 | 5.3 | 5.6 | 5.0 | 4.4 | 5.1 |
+
+All three seeds go down; a run with learning rate 0 stays at 27.2 (so the test itself is stable). Lower learning rates (1e-5), a pull-back-to-original
+penalty and last-layer-only fine-tuning did not help either (single-seed screens, 2-8 rows after 100 rounds). A plausible explanation (not tested):
+the shipped network is the best checkpoint of a training run whose score swings a lot between checkpoints (15 to 36 across seeds), so any further DQN
+training regresses toward the typical level of the run (~10-15) and small, correlated data from a few games cannot repair that.
+Remaining limits: only the player AI learns (the level maker is fixed); the replay buffer is not saved between sessions (the weights are).
+

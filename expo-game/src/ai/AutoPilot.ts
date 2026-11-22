@@ -2,6 +2,8 @@ import { swipeDirections } from "@/components/GestureView";
 import { ACTION_NAMES, buildObservation } from "./policy";
 import { brain } from "./brain";
 
+const START_ROW = 8; // hero starts on row 8 (GameSettings.startingRow); the displayed score is rows beyond it
+const MAX_IDLE = 25; // decisions without reaching a new row before the round is ended (same 'too slow' rule as the training simulator)
 const FRAMES_PER_DECISION = 12; // the policy was trained with one decision per 12 game frames (0.2 s hop)
 
 /**
@@ -17,6 +19,8 @@ export default class AutoPilot {
   private prevObs: Float32Array | null = null;
   private prevAction = 0;
   private prevBest = 0;
+  private ended = false;
+  private idle = 0;
   private best = 0; // furthest row reached this game
 
   constructor(private engine: any) {
@@ -36,6 +40,9 @@ export default class AutoPilot {
     this.frames = 0;
     const z = Math.round(e._hero.position.z);
     const obs = buildObservation(e.gameMap, e._hero.position.x, z);
+    if (z < this.best - 3) { e.gameOver(); return; } // 'fell behind' rule of the training simulator
+    if (z > this.best) this.idle = 0;
+    else if (++this.idle > MAX_IDLE) { e.gameOver(); return; } // the real game has no auto-scrolling camera, so stalling would never end
     this.best = Math.max(this.best, z);
     if (this.prevObs) {
       // outcome of the previous decision: -0.02 per step, +1 per new row (same reward as training)
@@ -55,14 +62,15 @@ export default class AutoPilot {
 
   /** called by the engine when the game ends: store the final (death) transition and the score */
   onEpisodeEnd() {
-    if (!this.enabled) return;
+    if (!this.enabled || this.ended) return; // the engine can report the same death on several frames
+    this.ended = true;
     const e = this.engine;
     if (this.prevObs) {
       const z = e._hero ? Math.round(e._hero.position.z) : this.best;
       this.best = Math.max(this.best, z);
       brain.add({ s: this.prevObs, a: this.prevAction, r: -1 + (this.best - this.prevBest), s2: this.prevObs, done: 1 });
     }
-    brain.recordGame(Math.max(0, this.best));
+    brain.recordGame(Math.max(this.best - START_ROW, 0)); // same score the game shows: rows past the start row
     this.prevObs = null;
   }
 }

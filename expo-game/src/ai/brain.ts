@@ -189,9 +189,14 @@ export class Brain {
   log: LearnEntry[] = [];
   busy = false;
 
-  constructor() { this.load(); }
+  constructor() {
+    this.load();
+    // ?learn=0 -> deterministic, no learning, nothing written (used by evaluations)
+    try { if (new URLSearchParams(window.location.search).get("learn") === "0") this.learningEnabled = false; } catch {}
+  }
 
-  get net() { return this.learner.net; }
+  /** learning ON: the policy that has been learning; OFF: always the original shipped network */
+  get net() { return this.learningEnabled ? this.learner.net : this.original; }
   get totalUpdates() { return this.learner.updates; }
 
   act(obs: Float32Array): number {
@@ -248,7 +253,7 @@ export class Brain {
   save() {
     const s = ls(); if (!s) return;
     try {
-      const n = this.net;
+      const n = this.learner.net;
       s.setItem(KEY_NET, JSON.stringify({
         dims: n.dims, version: this.version, games: this.games, transitions: this.totalTransitions, updates: this.learner.updates,
         W: n.W.map(b64), B: n.B.map(b64),
@@ -260,7 +265,7 @@ export class Brain {
   load() {
     const s = ls(); if (!s) return;
     try {
-      this.learningEnabled = s.getItem(KEY_ON) !== "0";
+      this.learningEnabled = s.getItem(KEY_ON) === "1"; // opt-in: naive online fine-tuning made the policy worse in our simulator test
       this.log = JSON.parse(s.getItem(KEY_LOG) || "[]");
       const raw = s.getItem(KEY_NET);
       if (!raw) return;
@@ -284,7 +289,7 @@ export class Brain {
     const s = ls(); try { s?.removeItem(KEY_NET); s?.removeItem(KEY_LOG); } catch {}
   }
 
-  exportWeightsJson() { return JSON.stringify(netToJson(this.net)); }
+  exportWeightsJson() { return JSON.stringify(netToJson(this.learner.net)); }
   logCsv() {
     const cols = ["time", "version", "games", "meanScore", "transitions", "updates", "loss", "totalUpdates"];
     return [cols.join(","), ...this.log.map((e) => cols.map((c) => (e as any)[c]).join(","))].join("\n") + "\n";

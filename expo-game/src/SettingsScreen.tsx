@@ -4,7 +4,7 @@ import { Asset } from "expo-asset";
 
 import { download, downloadUrl } from "@/download";
 import { Match, clearMatches, loadMatches, matchesCsv } from "@/matchLog";
-import { figures, summary } from "@/reportData";
+import { figures, realGame, summary } from "@/reportData";
 import { brain } from "@/ai/brain";
 
 /**
@@ -77,6 +77,15 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
                 />
               </>
             )}
+            <Text style={s.h3}>SHIPPED AI IN THE REAL GAME (NOT THE SIMULATOR), LEARNING OFF</Text>
+            <Table
+              head={["Levels", "Games", "Mean rows", "Std", "Median", "Max"]}
+              rows={[["random_levels", "original random levels"], ["maker_levels", "level-maker levels"]].map(([k, label]) => {
+                const r = realGame.after[k];
+                return [label, String(r.games), r.mean.toFixed(2), r.std.toFixed(2), String(r.median), String(r.max)];
+              })}
+              flex={[2.4, 0.8, 1.2, 0.8, 1, 0.8]}
+            />
             <View style={s.tabs}>
               {figures.map((f, i) => (
                 <Pressable key={f.key} onPress={() => setFig(i)} style={[s.tab, i === fig && s.tabOn]}>
@@ -123,8 +132,9 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
 
         <Text style={[s.h2, { marginTop: 30 }]}>WHAT THE AI HAS LEARNED</Text>
         <Text style={s.p}>
-          After every round the AI trains on what it just did (Double DQN, same update as the Python training) and the new
-          weights are saved on this computer. Learning is {brain.learningEnabled ? "ON" : "OFF"} · {brain.version} learning rounds ·{" "}
+          Learning is OFF by default and is an experiment. When ON, the AI trains after every round on what it just did (Double DQN,
+          same update as the Python training) and saves the new weights on this computer. In our simulator test (figure "Online
+          learning test") this made the AI worse (27 to 10 rows over 150 rounds); "Reset AI to original" undoes it. Learning is {brain.learningEnabled ? "ON" : "OFF"} · {brain.version} learning rounds ·{" "}
           {brain.games} games · {brain.totalTransitions} moves learned from · {brain.totalUpdates} gradient updates.
         </Text>
         {brain.log.length > 0 && (

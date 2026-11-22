@@ -305,7 +305,8 @@ export class CrossyGameMap extends GameMap {
         this.grasses.count++;
         break;
       case "roadtype":
-        if (((Math.random() * 4) | 0) === 0) {
+        // rows chosen by the level-maker AI stay roads (design >= 1): the player AI was trained on a simulator without trains
+        if (design < 1 && ((Math.random() * 4) | 0) === 0) {
           this.railRoads.items[this.railRoads.count].position.z = this.rowCount;
           this.railRoads.items[this.railRoads.count].active = true;
           this.setRow(this.rowCount, {

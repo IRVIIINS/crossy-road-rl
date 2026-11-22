@@ -25,6 +25,7 @@ export default class GameView extends Component<Props> {
   state = { ready: false, score: 0, gameState: State.Game.none };
   engine: any;
   started = false;
+  dead = false;
   startTimer: any;
 
   UNSAFE_componentWillMount() {
@@ -32,6 +33,7 @@ export default class GameView extends Component<Props> {
     e.seed = this.props.seed;
     e.viewport = { width: this.props.width, height: this.props.height };
     e.autopilot.enabled = this.props.ai;
+    try { ((window as any).__engines ||= []).push(e); } catch {}
     e.onUpdateScore = (position) => {
       if (this.state.score < position) this.setState({ score: position });
     };
@@ -39,7 +41,10 @@ export default class GameView extends Component<Props> {
     e._isGameStateEnded = () => this.state.gameState !== State.Game.playing;
     e.onGameReady = () => this.setState({ ready: true });
     e.onGameEnded = () => {
+      if (this.dead) return; // the engine can report the same death on several frames
+      this.dead = true;
       this.setState({ gameState: State.Game.gameOver });
+      try { ((window as any).__deaths ||= []).push({ score: this.state.score, seed: this.props.seed, ai: this.props.ai }); } catch {}
       this.props.onDead?.(this.state.score);
     };
     e.setupGame(this.props.character);

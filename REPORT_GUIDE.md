@@ -81,3 +81,21 @@ python run_experiments.py --seeds 0 1 2 --workers 4      # ablation runs -> runs
 python make_report.py                                     # tables + figures -> results/ (and into the app)
 ```
 On a many-core machine use `--workers` equal to the number of cores (each run is single-threaded).
+
+
+## Real game vs simulator, and the online-learning result (added)
+
+Real game (Expo engine, headless harness `tests/real_game_eval/`, learning off, 80 games each, `results/real_game_eval.json`):
+
+| Levels | Real game (rows) | Simulator, same agent (100 seeds) |
+|---|---|---|
+| original random levels | 15.6 +- 13.9 (median 10, max 74) | 27.2 |
+| level-maker levels | 5.4 +- 5.7 (median 3, max 23) | 7.7 |
+
+So the real game is about 0.6-0.7x the simulator, not the 1-7 vs 25 quoted earlier (that mixed in the level maker and a missing "too slow" rule: the
+real game has no auto-scrolling camera, so a stalling AI never died; the app now ends a round after 25 decisions without a new row, and after falling 3 rows behind, like the simulator).
+Remaining gap: the simulator has no train tracks (rows the level maker designs are kept as roads in the app, but the original random levels still contain trains),
+plus small physics differences. Report both numbers and call the simulator the experimental environment.
+
+Online learning (opt-in in the app) lowers the score: 27.2 -> 9.7 on random levels, 7.7 -> 5.1 on maker levels after 150 rounds, 3 seeds
+(`results/online_learning.png`). Present it as a negative result and an instance of the instability of DQN, not as "the AI keeps improving".

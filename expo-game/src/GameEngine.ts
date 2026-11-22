@@ -21,6 +21,11 @@ import {
   startingRow,
 } from "./GameSettings";
 
+// ?headless=1 skips drawing so tests can run the game logic much faster than real time
+const HEADLESS = (() => {
+  try { return new URLSearchParams(window.location.search).get("headless") === "1"; } catch { return false; }
+})();
+
 const normalizeAngle = (angle) => {
   return Math.atan2(Math.sin(angle), Math.cos(angle));
 };
@@ -229,6 +234,7 @@ export default class Engine {
       this.raf = requestAnimationFrame(render);
       const time = Date.now();
       this.tick(time);
+      if (HEADLESS) return; // ?headless=1: simulate without drawing (used by the evaluation harness)
       this.renderer.render(this.scene, this.camera);
 
       // NOTE: At the end of each frame, notify `Expo.GLView` with the below
