@@ -34,8 +34,19 @@ def box(width):
     return HERO_HALF + width / 2 - 0.1
 
 
+# ---- level-maker interface -------------------------------------------------------------------
+# The level-maker AI (level_maker.py) picks one of these for every new row (after the 10 safe grass rows).
+# Speed ranges stay inside the original game's ranges (road .02-.08, water .02-.07), so every level it builds
+# is one the normal generator could also have built.
+N_DESIGN = 6
+DESIGN_NAMES = ["grass", "road slow", "road medium", "road fast", "river slow", "river fast"]
+ROAD_SPEEDS = [(0.02, 0.04), (0.04, 0.06), (0.06, 0.08)]
+WATER_SPEEDS = [(0.02, 0.045), (0.045, 0.07)]
+MAX_HAZARD_RUN = 3            # fairness rule: never more than 3 road/river rows in a row without grass
+
+
 class Row:
-    def __init__(self, kind, rng, prev=None, idx=0):
+    def __init__(self, kind, rng, prev=None, idx=0, speed_range=None):
         self.kind = kind
         self.trees = set()
         self.ents = []                  # (x0, speed, collision_half) ; position = wrap(x0 + speed*frame)
@@ -50,7 +61,7 @@ class Row:
             if prev is not None and prev.kind == WATER_LILY:
                 self.trees -= set(prev.lily)
         elif kind == ROAD:
-            self.speed = rng.uniform(0.02, 0.08)
+            self.speed = rng.uniform(*(speed_range or (0.02, 0.08)))
             d = rng.choice([-1, 1]); self.dir = d
             x = -6 * d
             for _ in range(rng.randint(1, 2)):
@@ -68,7 +79,7 @@ class Row:
             self.lily = pos
             self.ents = [(float(p), 0.0, box(1)) for p in pos]
         else:
-            self.speed = rng.uniform(0.02, 0.07)
+            self.speed = rng.uniform(*(speed_range or (0.02, 0.07)))
             d = rng.choice([-1, 1]); self.dir = d
             x = -6 * d
             for _ in range(rng.randint(2, 3)):
@@ -91,12 +102,13 @@ class ExpoCrossySim:
     n_actions = 5
     obs_size = OBS_SIZE
 
-    def __init__(self, seed=None, max_idle=25, future=FUTURE):
+    def __init__(self, seed=None, max_idle=25, future=FUTURE, designer=None):
         """future: frame offsets of the occupancy planes in the observation. (0, 6, 12) is the full model;
         (0,) is the ablation that only sees where cars/logs are *right now* (no look-ahead)."""
         self.rng = random.Random(seed)
         self.max_idle = max_idle
         self.future = tuple(future)
+        self.designer = designer        # None = the normal random generator; else callable(specs, idx) -> 0..5
         self.obs_per_row = 4 + 9 + BINS * len(self.future) + 1
         self.obs_size = VIEW_ROWS * self.obs_per_row + 1
         self.reset()
@@ -104,19 +116,31 @@ class ExpoCrossySim:
     def row(self, z):
         while len(self.rows) <= z:
             i = len(self.rows)
+            speed_range = None
             if i < 10:
                 kind = GRASS
+                spec = 0
+            elif self.designer is not None:
+                spec = int(self.designer(self.specs, i))
+                if spec == 0: kind = GRASS
+                elif spec <= 3: kind, speed_range = ROAD, ROAD_SPEEDS[spec - 1]
+                else:
+                    kind = WATER_LILY if i % 2 == 0 else WATER_LOG
+                    speed_range = WATER_SPEEDS[spec - 4]
             else:
                 kind = self.rng.choice(["grass", "road", "water"])
                 if kind == "grass": kind = GRASS
                 elif kind == "road": kind = ROAD
                 else: kind = WATER_LILY if i % 2 == 0 else WATER_LOG
+                spec = {GRASS: 0, ROAD: 2, WATER_LILY: 4, WATER_LOG: 4}[kind]    # (not used by the random generator)
             prev = self.rows[-1] if self.rows else None
-            self.rows.append(Row(kind, self.rng, prev, i))
+            self.specs.append(spec)
+            self.rows.append(Row(kind, self.rng, prev, i, speed_range))
         return self.rows[z]
 
     def reset(self):
         self.rows = []
+        self.specs = []
         self.row(30)
         self.z, self.x = START_ROW, 0.0
         self.frame = 0

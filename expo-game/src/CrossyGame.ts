@@ -17,6 +17,7 @@ import Feathers from "./Particles/Feathers";
 import Water from "./Particles/Water";
 import Rows from "./Row";
 import { Fill } from "./Row/Grass";
+import { designRow, ROAD_SPEEDS, WATER_SPEEDS } from "./ai/levelMaker";
 
 // TODO Add to state - disable/enable when battery is low
 const useParticles = true;
@@ -267,6 +268,14 @@ export class CrossyGameMap extends GameMap {
       rowKind = "grass";
     }
 
+    // The level-maker AI (src/ai/levelMaker.ts) decides what every row after the safe start is.
+    while (this.specs.length < this.rowCount) this.specs.push(0);
+    let design = -1;
+    if (this.levelMaker && rowKind == null && this.rowCount >= 10) {
+      design = designRow(this.levelMaker, this.specs, this.rowCount);
+      rowKind = design === 0 ? "grass" : design <= 3 ? "roadtype" : "water";
+    }
+
     const ROW_TYPES = ["grass", "roadtype", "water"];
     if (rowKind == null) {
       rowKind = ROW_TYPES[Math.floor(Math.random() * ROW_TYPES.length)];
@@ -312,6 +321,10 @@ export class CrossyGameMap extends GameMap {
             previousRowType !== "road"
           );
           this.roads.items[this.roads.count].active = true;
+          if (design >= 1 && design <= 3) {
+            const [lo, hi] = ROAD_SPEEDS[design - 1];
+            this.roads.items[this.roads.count].carGen(lo, hi);
+          }
           this.setRow(this.rowCount, {
             type: "road",
             entity: this.roads.items[this.roads.count],
@@ -329,7 +342,10 @@ export class CrossyGameMap extends GameMap {
           clearPositions = this.getClearPositionsFromGrass(previousRow.entity);
         }
 
-        this.water.items[this.water.count].generate(clearPositions);
+        this.water.items[this.water.count].generate(
+          clearPositions,
+          design >= 4 ? WATER_SPEEDS[design - 4] : undefined
+        );
         this.setRow(this.rowCount, {
           type: "water",
           entity: this.water.items[this.water.count],
@@ -338,10 +354,16 @@ export class CrossyGameMap extends GameMap {
         break;
     }
 
+    this.specs[this.rowCount] = design >= 0 ? design : rowKind === "grass" ? 0 : rowKind === "water" ? 4 : 2;
     this.rowCount++;
   };
 
+  // Level-maker AI: network weights (null = the original random generator) and the row types built so far.
+  levelMaker: any = null;
+  specs: number[] = [];
+
   reset() {
+    this.specs = [];
     this.grasses.count = 0;
     this.water.count = 0;
     this.roads.count = 0;

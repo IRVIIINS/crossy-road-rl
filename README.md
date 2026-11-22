@@ -45,7 +45,7 @@ GitHub builds the apps (Actions -> *Build releases*). Install v3 (v2 is the same
 ```bash
 cd ~/Downloads && curl -L -o CrossyRoad-v3-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/v3/CrossyRoad-v3-mac.zip && ditto -x -k CrossyRoad-v3-mac.zip /Applications && xattr -cr "/Applications/Crossy Road v3.app" && open "/Applications/Crossy Road v3.app"
 ```
-v3 is in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (you on the left, the AI on the right, same road) and **AI vs AI** (two AIs, one road each). Keys: 1 / 2 pick a mode, R restart, Esc back to the menu.
+v3 is in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (you on the left, the AI on the right, same road) and **AI vs AI** (two AIs, one road each). The levels are built by the level-maker AI. Keys: 1 / 2 pick a mode, R restart, Esc back to the menu.
 
 ### (Optional) simple 2D pygame app
 
@@ -60,6 +60,7 @@ Quick run without building: `python native_app.py`.
 | `train_iterative.py` | iterative training: rounds of 200 episodes, fixed-seed evaluation, checkpoints, best model, early stopping |
 | `run_experiments.py` | ablation study: look-ahead on/off, Double vs vanilla DQN, 3 seeds each |
 | `make_report.py` | held-out test + baselines -> `results/` (tables, CSVs, figures, `summary.json`) |
+| `level_maker.py`, `train_level_maker.py`, `eval_level_maker.py` | the third AI: a DQN that builds the levels (adversarial but fair); results in `results/level_maker.*`, runs in `lm_runs/` |
 | `results/` | `tables.md`, `learning_curves.png`, `ablation_bar.png`, `death_causes.png`, `score_distribution.png`, CSVs |
 | `runs/` | per-run logs, `iterations.csv`, `episodes.csv`, `best.pt`, learning curves |
 | `DOCUMENTATION.md` | how everything works |

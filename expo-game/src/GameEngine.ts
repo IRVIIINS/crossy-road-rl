@@ -11,6 +11,7 @@ import {
 } from "./CrossyGame";
 import CrossyPlayer from "./CrossyPlayer";
 import AutoPilot from "./ai/AutoPilot";
+import levelMakerWeights from "./ai/levelMakerWeights.json";
 import {
   CAMERA_EASING,
   DEBUG_CAMERA_CONTROLS,
@@ -92,6 +93,13 @@ export default class Engine {
     this.scene.world.add(this._hero);
 
     this.scene.createParticles();
+
+    // the level-maker AI builds the level (add ?levelmaker=0 to the URL to use the original random generator)
+    let useMaker = true;
+    try {
+      useMaker = new URLSearchParams(window.location.search).get("levelmaker") !== "0";
+    } catch {}
+    this.gameMap.levelMaker = useMaker ? levelMakerWeights : null;
 
     this.gameMap.init = this._seeded(this.gameMap.init);
     this.gameMap.newRow = this._seeded(this.gameMap.newRow);

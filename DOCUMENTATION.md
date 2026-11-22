@@ -46,6 +46,22 @@ steps. `double=False` gives plain DQN (used as an ablation). Same family as the 
 * `make_report.py` - held-out test of every run's `best.pt` + baselines -> `results/` (tables, CSVs, figures, `summary.json`)
   and copies them into the app so **Settings** can show/export them.
 
+## 4b. The three AIs
+
+| # | AI | What it does | Files |
+|---|---|---|---|
+| 1 | **Player AI** | plays the chicken (Double DQN, 521 -> 256 -> 128 -> 5) | `dqn_agent.py`, `train_*.py`, `expo-game/src/ai/{policy,AutoPilot}.ts` |
+| 2 | **Opponent AI** | the same player network, used as the second contestant in **AI vs AI** (and as your opponent in **YOU vs AI**) | same as #1 |
+| 3 | **Level-maker AI** | a second DQN (26 -> 64 -> 64 -> 6) that chooses what every new row is: grass, road slow/medium/fast, river slow/fast | `level_maker.py`, `train_level_maker.py`, `eval_level_maker.py`, `expo-game/src/ai/levelMaker.ts` |
+
+**Level maker.** State: the last 4 rows it built, whether the next row is even/odd (even rivers are lily pads, odd rivers have
+logs) and the current run of road/river rows. Reward: +1 when the (frozen) player AI dies on a row the maker built, -0.05 for each
+row the player crosses safely. Fairness is enforced by an action mask: after 3 road/river rows in a row it must build grass, and speeds
+stay inside the original game's ranges, so every level is one the normal random generator could also have produced.
+At play time it picks a random legal row 15% of the time for variety. It is always on in the app (`?levelmaker=0` in the web URL switches
+back to the original random generator for comparison). The levels of one match are the same for both boards in **YOU vs AI**.
+The TypeScript port is parity-tested against Python (`expo-game/tests/levelmaker_parity.test.ts`: identical inputs, Q-values within 1e-4, identical actions).
+
 ## 5. Experiments (see `results/tables.md`)
 
 | Config | What changes | Question |
@@ -54,6 +70,7 @@ steps. `double=False` gives plain DQN (used as an ablation). Same family as the 
 | `no_future` | observation only has the *present* (frame offset 0) | do look-ahead features matter? |
 | `vanilla` | plain DQN target | does Double DQN matter? |
 | baselines | random, always-UP, hand-written reactive rule | does learning beat simple rules? |
+| level maker | 3 level-maker AIs (own seeds) vs the original random generator; 5 players, 200 held-out levels each | can an AI build harder levels, and does it generalise to players it never saw? |
 
 Protocol: every run trains with its own seed; the model is selected on evaluation seeds 10000-10049 during training,
 then **re-tested on 200 unseen seeds (20000+)**. We report mean +- std across training seeds, not a single lucky run.

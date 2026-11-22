@@ -212,6 +212,9 @@ def main():
             shutil.copy(os.path.join(a.out, f"{n}.png"), os.path.join(app_dir, f"{n}.png"))
         shutil.copy(os.path.join(a.out, "summary.json"), os.path.join(app_dir, "summary.json"))
         print("copied results into", app_dir)
+    if os.path.exists(os.path.join(a.out, "level_maker.json")):      # keep the level-maker section if it was already evaluated
+        from eval_level_maker import patch_summary
+        patch_summary()
     print("wrote", a.out)
 
 

@@ -61,6 +61,19 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
               rows={bases.map(([k, v]) => [summary.baseline_labels[k], v.mean.toFixed(2), v.std.toFixed(2), String(v.median), String(v.max)])}
               flex={[3.2, 1, 1, 1, 1]}
             />
+            {summary.level_maker && (
+              <>
+                <Text style={s.h3}>LEVEL-MAKER AI vs RANDOM LEVELS (SCORE, ROWS CROSSED)</Text>
+                <Table
+                  head={["Player", "Random levels", "Level maker", "Drop"]}
+                  rows={summary.level_maker.table.map((t: any) => [
+                    t.player, t.random_levels.toFixed(2),
+                    `${t.maker_levels.toFixed(2)} ± ${t.maker_levels_std_over_maker_seeds.toFixed(2)}`, `${t.drop_pct.toFixed(0)}%`,
+                  ])}
+                  flex={[3.4, 1.3, 1.6, 0.8]}
+                />
+              </>
+            )}
             <View style={s.tabs}>
               {figures.map((f, i) => (
                 <Pressable key={f.key} onPress={() => setFig(i)} style={[s.tab, i === fig && s.tabOn]}>
@@ -76,6 +89,9 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
             <View style={s.rowWrap}>
               <Btn label="Final results (CSV)" onPress={() => download("final_eval.csv", summary.csv.final_eval, "text/csv")} />
               <Btn label="Learning curves (CSV)" onPress={() => download("learning_curves.csv", summary.csv.learning_curves, "text/csv")} />
+              {summary.csv.level_maker ? (
+                <Btn label="Level maker (CSV)" onPress={() => download("level_maker.csv", summary.csv.level_maker, "text/csv")} />
+              ) : null}
               <Btn label="Baselines (CSV)" onPress={() => download("baselines.csv", summary.csv.baselines, "text/csv")} />
               <Btn label="Tables (Markdown)" onPress={() => download("results_tables.md", summary.tables_md, "text/markdown")} />
               <Btn label="Summary (JSON)" onPress={() => download("summary.json", JSON.stringify(summary, null, 2), "application/json")} />

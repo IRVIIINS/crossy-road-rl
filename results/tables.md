@@ -39,3 +39,12 @@ Held-out test: 200 episodes on seeds 20000+ that were never used for model selec
 | Double DQN + look-ahead (ours) | 25% | 22% | 2% | 36% | 15% | 0% |
 | no look-ahead (ablation) | 24% | 23% | 1% | 43% | 9% | 0% |
 | vanilla DQN (ablation) | 26% | 16% | 2% | 41% | 16% | 0% |
+## Level-maker AI vs random levels (mean score, rows crossed)
+
+| Player | Random levels | Level-maker levels | Drop |
+|---|---|---|---|
+| shipped agent (maker trained against it) | 22.61 | 7.56 ± 0.07 | 67% |
+| independent agent s0 | 23.80 | 8.72 ± 0.57 | 63% |
+| independent agent s1 | 12.99 | 5.21 ± 0.38 | 60% |
+| independent agent s2 | 34.36 | 9.68 ± 0.52 | 72% |
+| hand-written rule | 4.25 | 2.24 ± 0.03 | 47% |

@@ -20,7 +20,7 @@ export default class Water extends Object3D {
     return Math.round(box3.max.x - box3.min.x);
   };
 
-  generate = (clearPositions: number[] = []) => {
+  generate = (clearPositions: number[] = [], speedRange?: [number, number]) => {
     this.entities.map((val) => {
       this.floor.remove(val.mesh);
       val = null;
@@ -31,7 +31,7 @@ export default class Water extends Object3D {
     if (this.isStaticRow(this.position.z | 0)) {
       this.generateStatic(clearPositions);
     } else if (!disableDriftwood) {
-      this.generateDynamic();
+      this.generateDynamic(speedRange);
     }
   };
 
@@ -104,10 +104,10 @@ export default class Water extends Object3D {
     }
   };
 
-  generateDynamic = () => {
+  generateDynamic = (speedRange: [number, number] = [0.02, 0.07]) => {
     // Speeds: .01 through .08
     // Number of cars: 1 through 3
-    let speed = Math.random() * 0.05 + 0.02;
+    let speed = speedRange[0] + Math.random() * (speedRange[1] - speedRange[0]);
     let numItems = Math.floor(Math.random() * 2) + 2;
     let xDir = 1;
 

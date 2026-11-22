@@ -23,7 +23,7 @@ export default class Road extends Object3D {
     return Math.round(box3.max.z - box3.min.z);
   };
 
-  carGen = () => {
+  carGen = (minSpeed = 0.02, maxSpeed = 0.08) => {
     this.cars.map((val) => {
       this.road.remove(val.mesh);
       val = null;
@@ -32,7 +32,7 @@ export default class Road extends Object3D {
 
     // Speeds: .01 through .08
     // Number of cars: 1 through 3
-    let speed = Math.random() * 0.06 + 0.02;
+    let speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
     let numCars = Math.floor(Math.random() * 2) + 1;
     let xDir = 1;
 
