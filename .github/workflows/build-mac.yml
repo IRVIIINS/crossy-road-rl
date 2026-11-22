@@ -29,7 +29,9 @@ jobs:
           name: CrossyRoadAI-mac
           path: CrossyRoadAI-mac.zip
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" CrossyRoadAI-mac.zip --title "Crossy Road AI ${{ github.ref_name }}" --notes "Download CrossyRoadAI-mac.zip, unzip it, then right-click 'Crossy Road AI' and choose Open the first time."
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_REF}" != refs/tags/* ]]; then TAG="mac-build-${GITHUB_RUN_NUMBER}"; fi
+          gh release create "$TAG" CrossyRoadAI-mac.zip --target "${GITHUB_SHA}" --title "Crossy Road AI ($TAG)" --notes "Download CrossyRoadAI-mac.zip, unzip it, then right-click 'Crossy Road AI' and choose Open the first time."
