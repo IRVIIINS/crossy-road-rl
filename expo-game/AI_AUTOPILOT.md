@@ -14,7 +14,7 @@ npm install        # or bun install
 npx expo start --web
 ```
 
-Open the page with `?ai=1` on the end of the URL (e.g. `http://localhost:8081/?ai=1`) to let the AI play,
+The game menu has **YOU vs AI** and **AI vs AI** (web: `?mode=you-vs-ai` or `?mode=ai-vs-ai`); the AI pane switches the autopilot on, to let the AI play,
 or press **P** to toggle it while playing. Tap/click to start the game as usual.
 
 ## Re-train / improve the AI

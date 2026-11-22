@@ -29,7 +29,7 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 * `expo_sim.py` – Python re-implementation of that game's rules (frame-based cars/logs, 0.2 s hops, lily pads, logs). Trains fast, no graphics.
 * `python train_dqn.py --env expo --episodes 20000` – train on it (keeps `models/best.pt`).
 * `python export_weights.py models/expo_best.pt expo-game/src/ai/weights.json` – export the network for the game.
-* `expo-game/src/ai/` – observation builder + network + autopilot. Run it: `cd expo-game && npm install && npx expo start --web`, then open the page with `?ai=1` (or press **P**). See `expo-game/AI_AUTOPILOT.md`.
+* `expo-game/src/ai/` – observation builder + network + autopilot. Run it: `cd expo-game && npm install && npx expo start --web`, then pick **YOU vs AI** or **AI vs AI** on the menu (or open `?mode=you-vs-ai` / `?mode=ai-vs-ai`). See `expo-game/AI_AUTOPILOT.md`.
 
 `models/expo_best.pt` scores about 24 rows on average in the simulator (random play: about 1.4; best run 104). Not tested inside the real game yet; train trains/rail rows are not modelled.
 
@@ -45,7 +45,7 @@ GitHub builds the apps (Actions -> *Build releases*). Install v3 (v2 is the same
 ```bash
 cd ~/Downloads && curl -L -o CrossyRoad-v3-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/v3/CrossyRoad-v3-mac.zip && ditto -x -k CrossyRoad-v3-mac.zip /Applications && xattr -cr "/Applications/Crossy Road v3.app" && open "/Applications/Crossy Road v3.app"
 ```
-v3 is in `desktop/` (Electron window around `expo-game/`). Use the *Game* menu: New game (AI plays) / (you play), or Cmd+P.
+v3 is in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (you on the left, the AI on the right, same road) and **AI vs AI** (two AIs, one road each). Keys: 1 / 2 pick a mode, R restart, Esc back to the menu.
 
 ### (Optional) simple 2D pygame app
 

@@ -120,12 +120,12 @@ export class CrossyCamera extends OrthographicCamera {
     this.lookAt(0, 0, 0);
   }
 
-  updateScale = ({ width, height, scale }) => {
+  updateScale = ({ width, height, scale, zoom = 400 }) => {
     this.left = -(width * scale);
     this.right = width * scale;
     this.top = height * scale;
     this.bottom = -(height * scale);
-    this.zoom = 400;
+    this.zoom = zoom;
     this.updateProjectionMatrix();
   };
 }

@@ -83,6 +83,7 @@ class GestureView extends Component {
   }
 
   onKeyDown = (e) => {
+    if (this.props.disabled) return;
     const direction = keyMap[e.code];
     if (direction) {
       this.props.onResponderGrant();
@@ -90,6 +91,7 @@ class GestureView extends Component {
   };
 
   onKeyUp = (e) => {
+    if (this.props.disabled) return;
     const direction = keyMap[e.code];
     if (direction) {
       this.props.onSwipe(direction);
@@ -97,6 +99,7 @@ class GestureView extends Component {
   };
 
   _handleShouldSetPanResponder = (evt, gestureState) => {
+    if (this.props.disabled) return false;
     evt.preventDefault();
     return evt.nativeEvent.touches.length === 1;
   };

@@ -9,19 +9,17 @@ let win, port;
 // so the build copies the web bundle into Resources/web instead (see build-mac.yml).
 const webRoot = () => app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "web");
 
-const url = (ai) => `http://127.0.0.1:${port}/${ai ? "?ai=1" : ""}`;
+const url = (mode) => `http://127.0.0.1:${port}/${mode ? "?mode=" + mode : ""}`;
 
 function buildMenu() {
-  const toggleAI = () => win.webContents.executeJavaScript(
-    "window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyP' }))");
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { role: "appMenu" },
     {
       label: "Game",
       submenu: [
-        { label: "New game (you play)", accelerator: "CmdOrCtrl+N", click: () => win.loadURL(url(false)) },
-        { label: "New game (AI plays)", accelerator: "CmdOrCtrl+Shift+N", click: () => win.loadURL(url(true)) },
-        { label: "Toggle AI autopilot (P)", accelerator: "CmdOrCtrl+P", click: toggleAI },
+        { label: "Main menu", accelerator: "CmdOrCtrl+M", click: () => win.loadURL(url(null)) },
+        { label: "You vs AI", accelerator: "CmdOrCtrl+1", click: () => win.loadURL(url("you-vs-ai")) },
+        { label: "AI vs AI", accelerator: "CmdOrCtrl+2", click: () => win.loadURL(url("ai-vs-ai")) },
         { type: "separator" },
         { role: "togglefullscreen" },
         { role: "reload" },
@@ -35,8 +33,8 @@ function buildMenu() {
 async function createWindow() {
   ({ port } = await startServer(webRoot()));
   win = new BrowserWindow({
-    width: 560, height: 920, minWidth: 360, minHeight: 560,
-    title: "Crossy Road v3 (3D + AI)", backgroundColor: "#000000",
+    width: 1100, height: 760, minWidth: 700, minHeight: 480,
+    title: "Crossy Road v3", backgroundColor: "#000000",
     webPreferences: { contextIsolation: true, backgroundThrottling: false },
   });
   buildMenu();

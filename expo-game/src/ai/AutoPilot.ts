@@ -6,7 +6,7 @@ const FRAMES_PER_DECISION = 12; // the policy was trained with one decision per 
 
 /**
  * Lets the trained network play the real game.
- * Turn it on with `?ai=1` in the web URL, or press the P key to toggle.
+ * The host (GameView) switches it on for the AI pane by setting `engine.autopilot.enabled = true`.
  */
 export default class AutoPilot {
   enabled = false;
@@ -17,16 +17,8 @@ export default class AutoPilot {
   constructor(private engine: any) {
     if (typeof window !== "undefined") {
       try {
-        const q = new URLSearchParams(window.location.search);
-        this.enabled = q.get("ai") === "1";
-        this.debug = q.get("debug") === "1";
+        this.debug = new URLSearchParams(window.location.search).get("debug") === "1";
       } catch {}
-      window.addEventListener?.("keydown", (e: KeyboardEvent) => {
-        if (e.code === "KeyP") {
-          this.enabled = !this.enabled;
-          console.log(`[autopilot] ${this.enabled ? "ON" : "OFF"}`);
-        }
-      });
     }
   }
 

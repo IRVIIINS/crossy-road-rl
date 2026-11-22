@@ -1,326 +1,193 @@
-import { GLView } from "expo-gl";
-import React, { Component } from "react";
-import {
-  Animated,
-  Dimensions,
-  StyleSheet,
-  Platform,
-  Vibration,
-  View,
-  useColorScheme,
-} from "react-native";
+import React from "react";
+import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import GestureRecognizer, { swipeDirections } from "@/components/GestureView";
-import Score from "@/components/ScoreText";
-import Engine from "@/GameEngine";
-import State from "@/state";
-import CharacterSelectScreen from "@/screens/CharacterSelectScreen";
-import GameOverScreen from "@/screens/GameOverScreen";
-import HomeScreen from "@/screens/HomeScreen";
-import SettingsScreen from "@/screens/SettingsScreen";
-import GameContext from "@/context/GameContext";
+import GameView from "@/GameView";
 
-const DEBUG_CAMERA_CONTROLS = false;
+type Mode = "you-vs-ai" | "ai-vs-ai";
 
-class Game extends Component {
-  /// Reserve State for UI related updates...
-  state = {
-    ready: false,
-    score: 0,
-    viewKey: 0,
-    gameState: State.Game.none,
-    showSettings: false,
-    showCharacterSelect: false,
-    // gameState: State.Game.gameOver
-  };
+const outline = (w: number) =>
+  Platform.select({
+    web: {
+      textShadow: `-${w}px 0px 0px #000, ${w}px 0px 0px #000, 0px -${w}px 0px #000, 0px ${w}px 0px #000`,
+    },
+    default: {},
+  }) as any;
 
-  transitionScreensValue = new Animated.Value(1);
-
-  UNSAFE_componentWillReceiveProps(nextProps, nextState) {
-    if (nextState.gameState && nextState.gameState !== this.state.gameState) {
-      this.updateWithGameState(nextState.gameState, this.state.gameState);
-    }
-    if (this.engine && nextProps.character !== this.props.character) {
-      this.engine._hero.setCharacter(nextProps.character);
-    }
+function initialMode(): Mode | null {
+  try {
+    const m = new URLSearchParams(window.location.search).get("mode");
+    return m === "you-vs-ai" || m === "ai-vs-ai" ? m : null;
+  } catch {
+    return null;
   }
+}
 
-  transitionToGamePlayingState = () => {
-    Animated.timing(this.transitionScreensValue, {
-      toValue: 0,
-      useNativeDriver: true,
-      duration: 200,
-      onComplete: ({ finished }) => {
-        this.engine.setupGame(this.props.character);
-        this.engine.init();
+export default function Root() {
+  const [mode, setMode] = React.useState<Mode | null>(initialMode);
+  if (!mode) return <Menu onPick={setMode} />;
+  return <Arena mode={mode} onExit={() => setMode(null)} />;
+}
 
-        if (finished) {
-          Animated.timing(this.transitionScreensValue, {
-            toValue: 1,
-            useNativeDriver: true,
-            duration: 300,
-          }).start();
-        }
-      },
-    }).start();
-  };
+function Button({ label, hint, onPress }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.button, pressed && { opacity: 0.8 }]}>
+      <Text style={styles.buttonText}>{label}</Text>
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+    </Pressable>
+  );
+}
 
-  updateWithGameState = (gameState) => {
-    if (!gameState) throw new Error("gameState cannot be undefined");
-
-    if (gameState === this.state.gameState) {
-      return;
-    }
-    const lastState = this.state.gameState;
-
-    this.setState({ gameState });
-    this.engine.gameState = gameState;
-    const { playing, gameOver, paused, none } = State.Game;
-    switch (gameState) {
-      case playing:
-        if (lastState === paused) {
-          this.engine.unpause();
-        } else if (lastState !== none) {
-          this.transitionToGamePlayingState();
-        } else {
-          // Coming straight from the menu.
-          this.engine._hero.stopIdle();
-          this.onSwipe(swipeDirections.SWIPE_UP);
-        }
-
-        break;
-      case gameOver:
-        break;
-      case paused:
-        this.engine.pause();
-        break;
-      case none:
-        if (lastState === gameOver) {
-          this.transitionToGamePlayingState();
-        }
-        this.newScore();
-
-        break;
-      default:
-        break;
-    }
-  };
-
-  componentWillUnmount() {
-    cancelAnimationFrame(this.engine.raf);
-    // Dimensions.removeEventListener("change", this.onScreenResize);
-  }
-
-  async componentDidMount() {
-    // AudioManager.sounds.bg_music.setVolumeAsync(0.05);
-    // await AudioManager.playAsync(
-    //   AudioManager.sounds.bg_music, true
-    // );
-
-    Dimensions.addEventListener("change", this.onScreenResize);
-  }
-
-  onScreenResize = ({ window }) => {
-    this.engine.updateScale();
-  };
-
-  UNSAFE_componentWillMount() {
-    this.engine = new Engine();
-    // this.engine.hideShadows = this.hideShadows;
-    this.engine.onUpdateScore = (position) => {
-      if (this.state.score < position) {
-        this.setState({ score: position });
-      }
+function Menu({ onPick }: { onPick: (m: Mode) => void }) {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Digit1" || e.code === "Numpad1") onPick("you-vs-ai");
+      if (e.code === "Digit2" || e.code === "Numpad2") onPick("ai-vs-ai");
     };
-    this.engine.onGameInit = () => {
-      this.setState({ score: 0 });
+    window.addEventListener("keyup", onKey);
+    return () => window.removeEventListener("keyup", onKey);
+  }, []);
+  return (
+    <View style={styles.menu}>
+      <Image source={require("../../assets/images/title.png")} style={styles.title} />
+      <Button label="YOU vs AI" hint="1" onPress={() => onPick("you-vs-ai")} />
+      <Button label="AI vs AI" hint="2" onPress={() => onPick("ai-vs-ai")} />
+    </View>
+  );
+}
+
+function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
+  const [round, setRound] = React.useState(0);
+  const newSeed = () => (Math.random() * 2 ** 31) | 0;
+  // YOU vs AI: both boards use the same road (fair race). AI vs AI: the AIs are deterministic, so
+  // give each its own road, otherwise both boards would be identical.
+  const [seeds, setSeeds] = React.useState<number[]>(() => {
+    const a = newSeed();
+    return [a, mode === "you-vs-ai" ? a : newSeed()];
+  });
+  const [scores, setScores] = React.useState<(number | null)[]>([null, null]);
+  const [size, setSize] = React.useState<{ w: number; h: number } | null>(null);
+  const bothDone = scores[0] != null && scores[1] != null;
+
+  const restart = React.useCallback(() => {
+    const a = newSeed();
+    setSeeds([a, mode === "you-vs-ai" ? a : newSeed()]);
+    setScores([null, null]);
+    setRound((r) => r + 1);
+  }, [mode]);
+
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Escape") onExit();
+      if (e.code === "KeyR" || (bothDone && e.code === "Enter")) restart();
     };
-    this.engine._isGameStateEnded = () => {
-      return this.state.gameState !== State.Game.playing;
-    };
-    this.engine.onGameReady = () => this.setState({ ready: true });
-    this.engine.onGameEnded = () => {
-      this.setState({ gameState: State.Game.gameOver });
-      // this.props.navigation.navigate('GameOver')
-    };
-    this.engine.setupGame(this.props.character);
-    this.engine.init();
+    window.addEventListener("keyup", onKey);
+    return () => window.removeEventListener("keyup", onKey);
+  }, [bothDone, restart, onExit]);
+
+  const names = mode === "you-vs-ai" ? ["YOU", "AI"] : ["AI 1", "AI 2"];
+  let result = "";
+  if (bothDone) {
+    const [a, b] = scores as number[];
+    result = a === b ? "TIE" : `${a > b ? names[0] : names[1]} WIN${names[a > b ? 0 : 1] === "YOU" ? "" : "S"}`;
   }
 
-  newScore = () => {
-    Vibration.cancel();
-    // this.props.setGameState(State.Game.playing);
-    this.setState({ score: 0 });
-    this.engine.init();
-  };
-
-  onSwipe = (gestureName) => this.engine.moveWithDirection(gestureName);
-
-  renderGame = () => {
-    if (!this.state.ready) return;
-
-    return (
-      <GestureView
-        pointerEvents={DEBUG_CAMERA_CONTROLS ? "none" : undefined}
-        onStartGesture={this.engine.beginMoveWithDirection}
-        onSwipe={this.onSwipe}
-      >
-        <GLView
-          style={{ flex: 1, height: "100%", overflow: "hidden" }}
-          onContextCreate={this.engine._onGLContextCreate}
-        />
-      </GestureView>
-    );
-  };
-
-  renderGameOver = () => {
-    if (this.state.gameState !== State.Game.gameOver) {
-      return null;
-    }
-
-    return (
-      <View style={StyleSheet.absoluteFillObject}>
-        <GameOverScreen
-          showSettings={() => {
-            this.setState({ showSettings: true });
-          }}
-          setGameState={(state) => {
-            this.updateWithGameState(state);
-          }}
-        />
-      </View>
-    );
-  };
-
-  renderHomeScreen = () => {
-    if (this.state.gameState !== State.Game.none) {
-      return null;
-    }
-
-    return (
-      <View style={StyleSheet.absoluteFillObject}>
-        <HomeScreen
-          onPlay={() => {
-            this.updateWithGameState(State.Game.playing);
-          }}
-          onShowCharacterSelect={() => {
-            this.setState({ showCharacterSelect: true });
-          }}
-        />
-      </View>
-    );
-  };
-
-  renderSettingsScreen() {
-    return (
-      <View style={StyleSheet.absoluteFillObject}>
-        <SettingsScreen
-          goBack={() => this.setState({ showSettings: false })}
-          setCharacter={this.props.setCharacter}
-        />
-      </View>
-    );
-  }
-
-  renderCharacterSelectScreen() {
-    return (
-      <View style={StyleSheet.absoluteFillObject}>
-        <CharacterSelectScreen
-          navigation={{
-            goBack: () => this.setState({ showCharacterSelect: false }),
-          }}
-          setCharacter={this.props.setCharacter}
-        />
-      </View>
-    );
-  }
-
-  render() {
-    const { isDarkMode, isPaused } = this.props;
-
-    return (
+  return (
+    <View style={styles.arena}>
       <View
-        pointerEvents="box-none"
-        style={[
-          StyleSheet.absoluteFill,
-          { flex: 1, backgroundColor: "#87C6FF" },
-          Platform.select({
-            web: { position: "fixed" },
-            default: { position: "absolute" },
-          }),
-          this.props.style,
-        ]}
+        style={styles.panes}
+        onLayout={(e) => {
+          const { width, height } = e.nativeEvent.layout;
+          setSize({ w: Math.floor((width - 4) / 2), h: Math.floor(height) });
+        }}
       >
-        <Animated.View
-          style={{ flex: 1, opacity: this.transitionScreensValue }}
-        >
-          {this.renderGame()}
-        </Animated.View>
-        <Score
-          score={this.state.score}
-          gameOver={this.state.gameState === State.Game.gameOver}
-        />
-        {this.renderGameOver()}
-
-        {this.renderHomeScreen()}
-
-        {this.state.showSettings && this.renderSettingsScreen()}
-
-        {this.state.showCharacterSelect && this.renderCharacterSelectScreen()}
-
-        {isPaused && (
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                backgroundColor: "rgba(105, 201, 230, 0.8)",
-                justifyContent: "center",
-                alignItems: "center",
-              },
-            ]}
-          />
+        {size && (
+          <>
+            <View style={{ width: size.w, height: size.h }}>
+              <GameView
+                key={`l${round}`}
+                width={size.w}
+                height={size.h}
+                ai={mode === "ai-vs-ai"}
+                seed={seeds[0]}
+                character="chicken"
+                onDead={(s) => setScores((p) => [s, p[1]])}
+              />
+            </View>
+            <View style={styles.divider} />
+            <View style={{ width: size.w, height: size.h }}>
+              <GameView
+                key={`r${round}`}
+                width={size.w}
+                height={size.h}
+                ai
+                seed={seeds[1]}
+                character="chicken"
+                onDead={(s) => setScores((p) => [p[0], s])}
+              />
+            </View>
+          </>
         )}
       </View>
-    );
-  }
-}
-
-const GestureView = ({ onStartGesture, onSwipe, ...props }) => {
-  const config = {
-    velocityThreshold: 0.2,
-    directionalOffsetThreshold: 80,
-  };
-
-  return (
-    <GestureRecognizer
-      onResponderGrant={() => {
-        onStartGesture();
-      }}
-      onSwipe={(direction) => {
-        onSwipe(direction);
-      }}
-      config={config}
-      onTap={() => {
-        onSwipe(swipeDirections.SWIPE_UP);
-      }}
-      style={{ flex: 1 }}
-      {...props}
-    />
-  );
-};
-
-function GameScreen(props) {
-  const scheme = useColorScheme();
-  const { character, setCharacter } = React.useContext(GameContext);
-
-  return (
-    <Game
-      {...props}
-      character={character}
-      setCharacter={setCharacter}
-      isDarkMode={scheme === "dark"}
-    />
+      <View pointerEvents="box-none" style={styles.topBar}>
+        <Pressable onPress={onExit} style={styles.small}>
+          <Text style={styles.smallText}>MENU</Text>
+        </Pressable>
+        <Pressable onPress={restart} style={styles.small}>
+          <Text style={styles.smallText}>RESTART</Text>
+        </Pressable>
+      </View>
+      {bothDone && (
+        <View pointerEvents="box-none" style={styles.result}>
+          <Text style={[styles.resultText, outline(5)]}>{result}</Text>
+          <Text style={[styles.resultScores, outline(3)]}>
+            {names[0]} {scores[0]}  -  {scores[1]} {names[1]}
+          </Text>
+          <Button label="PLAY AGAIN" hint="Enter" onPress={restart} />
+        </View>
+      )}
+    </View>
   );
 }
 
-export default GameScreen;
+const styles = StyleSheet.create({
+  menu: {
+    position: Platform.select({ web: "fixed", default: "absolute" }) as any,
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "#87C6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 18,
+  },
+  title: { width: "70%", maxWidth: 480, height: 200, resizeMode: "contain", marginBottom: 24 },
+  button: {
+    minWidth: 280,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    backgroundColor: "#0b0b0b",
+    borderColor: "#fff",
+    borderWidth: 3,
+    alignItems: "center",
+  },
+  buttonText: { fontFamily: "retro", color: "#fff", fontSize: 30, letterSpacing: 1 },
+  hint: { fontFamily: "retro", color: "#f8e84d", fontSize: 12, marginTop: 4 },
+  arena: {
+    position: Platform.select({ web: "fixed", default: "absolute" }) as any,
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "#000",
+  },
+  panes: { flex: 1, flexDirection: "row" },
+  divider: { width: 4, backgroundColor: "#000" },
+  topBar: {
+    position: "absolute", bottom: 10, left: 0, right: 0,
+    flexDirection: "row", justifyContent: "center", gap: 10,
+  },
+  small: { backgroundColor: "rgba(0,0,0,0.7)", paddingVertical: 6, paddingHorizontal: 12 },
+  smallText: { fontFamily: "retro", color: "#fff", fontSize: 14 },
+  result: {
+    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center", justifyContent: "center", gap: 14,
+  },
+  resultText: { fontFamily: "retro", color: "#f8e84d", fontSize: 64 },
+  resultScores: { fontFamily: "retro", color: "#fff", fontSize: 28 },
+});

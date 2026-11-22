@@ -25,13 +25,43 @@ const normalizeAngle = (angle) => {
 };
 
 export default class Engine {
+  // When the game is shown in a pane (split screen), `viewport` is the pane size instead of the window size.
+  viewport = null;
+  // Shared seed => both panes get the identical road/river layout, so "vs" is a fair race.
+  seed = null;
+  rng = null;
+
+  setViewport = (viewport) => {
+    this.viewport = viewport;
+    this.updateScale();
+  };
+
   updateScale = () => {
-    const { width, height, scale } = Dimensions.get("window");
+    const win = Dimensions.get("window");
+    const { scale } = win;
+    let { width, height } = win;
+    let zoom = 400;
+    if (this.viewport) {
+      ({ width, height } = this.viewport);
+      zoom = (400 * width) / 560; // keep the same horizontal field of view as the full-window game
+    }
     if (this.camera) {
-      this.camera.updateScale({ width, height, scale });
+      this.camera.updateScale({ width, height, scale, zoom });
     }
     if (this.renderer) {
       this.renderer.setSize(width * scale, height * scale);
+    }
+  };
+
+  // Run `fn` with Math.random replaced by this engine's seeded generator.
+  _seeded = (fn) => (...args) => {
+    if (this.seed == null) return fn(...args);
+    const orig = Math.random;
+    Math.random = this.rng;
+    try {
+      return fn(...args);
+    } finally {
+      Math.random = orig;
     }
   };
 
@@ -62,6 +92,9 @@ export default class Engine {
     this.scene.world.add(this._hero);
 
     this.scene.createParticles();
+
+    this.gameMap.init = this._seeded(this.gameMap.init);
+    this.gameMap.newRow = this._seeded(this.gameMap.newRow);
   };
 
   isGameEnded() {
@@ -88,6 +121,17 @@ export default class Engine {
 
   // Setup initial scene
   init = () => {
+    if (this.seed != null) {
+      // mulberry32
+      let a = this.seed >>> 0;
+      this.rng = () => {
+        a = (a + 0x6d2b79f5) >>> 0;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
     this.onGameInit();
 
     this.camera.position.z = 1;
