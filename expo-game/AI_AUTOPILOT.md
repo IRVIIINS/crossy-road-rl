@@ -15,7 +15,7 @@ npx expo start --web
 ```
 
 The game menu has **YOU vs AI** and **AI vs AI** (web: `?mode=you-vs-ai` or `?mode=ai-vs-ai`); the AI pane switches the autopilot on, to let the AI play,
-or press **P** to toggle it while playing. Tap/click to start the game as usual.
+Tap/click or arrow keys / WASD to play your own chicken.
 
 ## Re-train / improve the AI
 
