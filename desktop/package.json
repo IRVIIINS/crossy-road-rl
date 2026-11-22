@@ -1,0 +1,9 @@
+{
+  "name": "crossy-road-ai",
+  "productName": "Crossy Road AI",
+  "version": "1.0.0",
+  "description": "Crossy Road (expo-crossy-road) in a native Mac window, with an AI autopilot",
+  "main": "main.js",
+  "private": true,
+  "license": "MIT"
+}

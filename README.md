@@ -33,7 +33,15 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 
 `models/expo_best.pt` scores about 24 rows on average in the simulator (random play: about 1.4; best run 104). Not tested inside the real game yet; train trains/rail rows are not modelled.
 
-## Native Mac app (double-click, no terminal)
+## Native Mac app: the real Expo Crossy Road + AI (download, no terminal)
+
+GitHub builds it for you (Actions -> *Build Mac app*) and posts `CrossyRoadAI-mac.zip` on the **Releases** page. It is the expo-crossy-road game (3D graphics and gameplay) in a native window (`desktop/`, Electron), with the AI autopilot. Menu *Game > New game (AI plays)* or Cmd+P.
+Terminal install:
+```bash
+cd ~/Downloads && curl -L -o CrossyRoadAI-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/latest/download/CrossyRoadAI-mac.zip && ditto -x -k CrossyRoadAI-mac.zip /Applications && xattr -cr "/Applications/Crossy Road AI.app" && open "/Applications/Crossy Road AI.app"
+```
+
+### (Optional) simple 2D pygame app
 
 `./build_mac.sh` builds `dist/Crossy Road AI.app` with PyInstaller (native arm64 on Apple Silicon). It has a menu to play yourself or watch the AI,
 and needs no PyTorch at runtime (`models/grid_best.npz` is the exported network; regenerate with `python export_numpy.py models/best.pt models/grid_best.npz`).

@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 models/latest.pt
+desktop/web/
+desktop/node_modules/
+desktop/out/
+desktop/package-lock.json
+.buildenv/
+build/
+dist/

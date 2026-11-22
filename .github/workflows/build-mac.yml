@@ -1,5 +1,8 @@
 name: Build Mac app
 
+# Packages the Expo Crossy Road game (3D graphics + gameplay, with the AI autopilot)
+# as a native Apple Silicon Mac app and publishes it as a GitHub release.
+
 on:
   push:
     tags: ["v*"]
@@ -13,25 +16,41 @@ jobs:
     runs-on: macos-latest      # Apple Silicon (arm64)
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.12"
-      - name: Build the .app
+          node-version: 22
+
+      - name: Build the game (web bundle)
+        working-directory: expo-game
+        env:
+          CI: "1"
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install numpy pygame-ce pyinstaller
-          SDL_VIDEODRIVER=dummy python native_app.py --selftest
-          pyinstaller --noconfirm --windowed --name "Crossy Road AI" \
-            --add-data "models/grid_best.npz:models" native_app.py
-          ditto -c -k --keepParent "dist/Crossy Road AI.app" CrossyRoadAI-mac.zip
+          npm install --legacy-peer-deps --no-audit --no-fund
+          npx expo export --platform web
+          rm -rf ../desktop/web
+          cp -R dist ../desktop/web
+
+      - name: Package the Mac app (Electron)
+        working-directory: desktop
+        run: |
+          npm install --no-audit --no-fund --save-dev electron@33 @electron/packager
+          npx @electron/packager . "Crossy Road AI" --platform=darwin --arch=arm64 \
+            --out=out --overwrite --ignore="^/out" --ignore="^/node_modules/\.cache"
+          APP="out/Crossy Road AI-darwin-arm64/Crossy Road AI.app"
+          codesign --force --deep --sign - "$APP"
+          ditto -c -k --keepParent "$APP" ../CrossyRoadAI-mac.zip
+
       - uses: actions/upload-artifact@v4
         with:
           name: CrossyRoadAI-mac
           path: CrossyRoadAI-mac.zip
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${GITHUB_REF_NAME}"
           if [[ "${GITHUB_REF}" != refs/tags/* ]]; then TAG="mac-build-${GITHUB_RUN_NUMBER}"; fi
-          gh release create "$TAG" CrossyRoadAI-mac.zip --target "${GITHUB_SHA}" --title "Crossy Road AI ($TAG)" --notes "Download CrossyRoadAI-mac.zip, unzip it, then right-click 'Crossy Road AI' and choose Open the first time."
+          gh release create "$TAG" CrossyRoadAI-mac.zip --target "${GITHUB_SHA}" \
+            --title "Crossy Road AI ($TAG)" \
+            --notes "Native Mac app (Apple Silicon): the Expo Crossy Road game with the AI autopilot. Unzip, drag to Applications. Game menu: New game (AI plays) / (you play), Cmd+P toggles the AI."
