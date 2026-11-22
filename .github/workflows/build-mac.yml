@@ -74,8 +74,11 @@ jobs:
         run: |
           npm install --no-audit --no-fund --save-dev electron@33 @electron/packager
           npx @electron/packager . "Crossy Road v3" --platform=darwin --arch=arm64 \
-            --out=out --overwrite --ignore="^/out"
+            --out=out --overwrite --ignore="^/out" --ignore="^/web"
           APP="out/Crossy Road v3-darwin-arm64/Crossy Road v3.app"
+          # the packager drops *.obj files (the 3D models), so copy the web bundle in by hand
+          cp -R web "$APP/Contents/Resources/web"
+          test "$(find "$APP/Contents/Resources/web" -name '*.obj' | wc -l)" -gt 20
           codesign --force --deep --sign - "$APP"
           ditto -c -k --keepParent "$APP" ../CrossyRoad-v3-mac.zip
       - name: Publish v3

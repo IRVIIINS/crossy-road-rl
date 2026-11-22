@@ -5,6 +5,10 @@ const { startServer } = require("./server");
 app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 let win, port;
 
+// The game's 3D models are .obj files, which the packager silently strips from the app bundle,
+// so the build copies the web bundle into Resources/web instead (see build-mac.yml).
+const webRoot = () => app.isPackaged ? path.join(process.resourcesPath, "web") : path.join(__dirname, "web");
+
 const url = (ai) => `http://127.0.0.1:${port}/${ai ? "?ai=1" : ""}`;
 
 function buildMenu() {
@@ -21,6 +25,7 @@ function buildMenu() {
         { type: "separator" },
         { role: "togglefullscreen" },
         { role: "reload" },
+        { role: "toggleDevTools" },
       ],
     },
     { role: "windowMenu" },
@@ -28,7 +33,7 @@ function buildMenu() {
 }
 
 async function createWindow() {
-  ({ port } = await startServer(path.join(__dirname, "web")));
+  ({ port } = await startServer(webRoot()));
   win = new BrowserWindow({
     width: 560, height: 920, minWidth: 360, minHeight: 560,
     title: "Crossy Road v3 (3D + AI)", backgroundColor: "#000000",
