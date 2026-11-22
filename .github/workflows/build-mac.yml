@@ -1,25 +1,65 @@
-name: Build Mac app
+name: Build releases (v1, v2, v3)
 
-# Packages the Expo Crossy Road game (3D graphics + gameplay, with the AI autopilot)
-# as a native Apple Silicon Mac app and publishes it as a GitHub release.
+# One run publishes three GitHub releases:
+#   v1 - first version: simple 2D game + DQN agent (source only)
+#   v2 - improved 2D pygame game with AI, as a Mac app  ("Crossy Road v2.app")
+#   v3 - the Expo Crossy Road 3D game + the AI autopilot, as a Mac app ("Crossy Road v3.app")
 
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: macos-latest      # Apple Silicon (arm64)
+  v1:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Publish v1 (and clean up the old test releases)
+        run: |
+          for t in mac-build-2 mac-build-3 v1; do gh release delete "$t" --cleanup-tag -y || true; done
+          FIRST=$(git rev-list --max-parents=0 HEAD | tail -1)
+          gh release create v1 --target "$FIRST" --title "Crossy Road v1 - first version (2D + DQN)" \
+            --notes "First version: simple 2D Crossy Road game with a DQN agent (Python/pygame/PyTorch). Source only; see the README."
+
+  v2:
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build Crossy Road v2.app
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pygame-ce pyinstaller
+          SDL_VIDEODRIVER=dummy python native_app.py --selftest
+          pyinstaller --noconfirm --windowed --name "Crossy Road v2" \
+            --add-data "models/grid_best.npz:models" native_app.py
+          ditto -c -k --keepParent "dist/Crossy Road v2.app" CrossyRoad-v2-mac.zip
+      - name: Publish v2
+        run: |
+          gh release delete v2 --cleanup-tag -y || true
+          gh release create v2 CrossyRoad-v2-mac.zip --target "${GITHUB_SHA}" \
+            --title "Crossy Road v2 - improved 2D game + AI (Mac app)" \
+            --notes "Native Apple Silicon Mac app of the improved 2D pygame game. Menu: 1 = play, 2 = watch the AI."
+
+  v3:
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Build the game (web bundle)
         working-directory: expo-game
         env:
@@ -29,28 +69,18 @@ jobs:
           npx expo export --platform web
           rm -rf ../desktop/web
           cp -R dist ../desktop/web
-
-      - name: Package the Mac app (Electron)
+      - name: Package Crossy Road v3.app (Electron)
         working-directory: desktop
         run: |
           npm install --no-audit --no-fund --save-dev electron@33 @electron/packager
-          npx @electron/packager . "Crossy Road AI" --platform=darwin --arch=arm64 \
-            --out=out --overwrite --ignore="^/out" --ignore="^/node_modules/\.cache"
-          APP="out/Crossy Road AI-darwin-arm64/Crossy Road AI.app"
+          npx @electron/packager . "Crossy Road v3" --platform=darwin --arch=arm64 \
+            --out=out --overwrite --ignore="^/out"
+          APP="out/Crossy Road v3-darwin-arm64/Crossy Road v3.app"
           codesign --force --deep --sign - "$APP"
-          ditto -c -k --keepParent "$APP" ../CrossyRoadAI-mac.zip
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: CrossyRoadAI-mac
-          path: CrossyRoadAI-mac.zip
-
-      - name: Publish release
-        env:
-          GH_TOKEN: ${{ github.token }}
+          ditto -c -k --keepParent "$APP" ../CrossyRoad-v3-mac.zip
+      - name: Publish v3
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          if [[ "${GITHUB_REF}" != refs/tags/* ]]; then TAG="mac-build-${GITHUB_RUN_NUMBER}"; fi
-          gh release create "$TAG" CrossyRoadAI-mac.zip --target "${GITHUB_SHA}" \
-            --title "Crossy Road AI ($TAG)" \
-            --notes "Native Mac app (Apple Silicon): the Expo Crossy Road game with the AI autopilot. Unzip, drag to Applications. Game menu: New game (AI plays) / (you play), Cmd+P toggles the AI."
+          gh release delete v3 --cleanup-tag -y || true
+          gh release create v3 CrossyRoad-v3-mac.zip --target "${GITHUB_SHA}" \
+            --title "Crossy Road v3 - 3D game (expo-crossy-road) + AI (Mac app)" \
+            --notes "Native Apple Silicon Mac app: the Expo Crossy Road 3D game with the AI autopilot. Game menu: New game (AI plays) / (you play); Cmd+P toggles the AI."

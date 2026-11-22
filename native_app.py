@@ -51,7 +51,7 @@ def main(selftest=False):
             if done: obs = env.reset()
         print("selftest ok")
         return
-    r = Renderer(g, "Crossy Road AI")
+    r = Renderer(g, "Crossy Road v2 (2D)")
     pygame.key.set_repeat(170, 100)
     mode, obs, last, move_dt = "menu", env._obs(), 0.0, 0.14
 

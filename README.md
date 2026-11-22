@@ -33,16 +33,22 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 
 `models/expo_best.pt` scores about 24 rows on average in the simulator (random play: about 1.4; best run 104). Not tested inside the real game yet; train trains/rail rows are not modelled.
 
-## Native Mac app: the real Expo Crossy Road + AI (download, no terminal)
+## Versions and Mac apps (download from Releases, no terminal build)
 
-GitHub builds it for you (Actions -> *Build Mac app*) and posts `CrossyRoadAI-mac.zip` on the **Releases** page. It is the expo-crossy-road game (3D graphics and gameplay) in a native window (`desktop/`, Electron), with the AI autopilot. Menu *Game > New game (AI plays)* or Cmd+P.
-Terminal install:
+| version | what | Mac app |
+|---|---|---|
+| **v1** | first version: simple 2D game + DQN agent | source only |
+| **v2** | improved 2D pygame game (smooth art) + AI | `Crossy Road v2.app` |
+| **v3** | the real expo-crossy-road 3D game (3D graphics and gameplay) + the AI autopilot | `Crossy Road v3.app` |
+
+GitHub builds the apps (Actions -> *Build releases*). Install v3 (v2 is the same with `v2`); each version has its own app name, so they never overwrite each other:
 ```bash
-cd ~/Downloads && curl -L -o CrossyRoadAI-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/latest/download/CrossyRoadAI-mac.zip && ditto -x -k CrossyRoadAI-mac.zip /Applications && xattr -cr "/Applications/Crossy Road AI.app" && open "/Applications/Crossy Road AI.app"
+cd ~/Downloads && curl -L -o CrossyRoad-v3-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/v3/CrossyRoad-v3-mac.zip && ditto -x -k CrossyRoad-v3-mac.zip /Applications && xattr -cr "/Applications/Crossy Road v3.app" && open "/Applications/Crossy Road v3.app"
 ```
+v3 is in `desktop/` (Electron window around `expo-game/`). Use the *Game* menu: New game (AI plays) / (you play), or Cmd+P.
 
 ### (Optional) simple 2D pygame app
 
-`./build_mac.sh` builds `dist/Crossy Road AI.app` with PyInstaller (native arm64 on Apple Silicon). It has a menu to play yourself or watch the AI,
+`./build_mac.sh` builds `dist/Crossy Road AI.app` (the v2 app, locally) with PyInstaller (native arm64 on Apple Silicon). It has a menu to play yourself or watch the AI,
 and needs no PyTorch at runtime (`models/grid_best.npz` is the exported network; regenerate with `python export_numpy.py models/best.pt models/grid_best.npz`).
 Quick run without building: `python native_app.py`.
