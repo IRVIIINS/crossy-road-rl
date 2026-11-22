@@ -93,3 +93,17 @@ timing differs slightly. This is worth a paragraph in the report (domain gap) an
 `desktop/` wraps the exported web build in Electron. Menu: **YOU vs AI**, **AI vs AI**, **SETTINGS**.
 Settings = data screen: experiment tables/figures with CSV/JSON/PNG downloads, plus a log of every round played in the app
 (`matches.csv`). Release builds come from `.github/workflows/build-mac.yml`.
+
+## 4c. Online learning in the app (what is saved from each game)
+
+The player AI keeps learning inside the desktop app. Every decision of every AI pane (one per 12 game frames) is stored as a
+transition `(observation, action, reward, next observation, done)` with the same reward as training (-0.02 per step, +1 per new row,
+-1 on death). When a round ends the app runs 30-150 Double-DQN updates (Huber loss, Adam, lr 1e-4, batch 32, target sync every 50
+updates, replay buffer of the last 6000 moves, exploration eps = 0.05 while learning) and saves the new weights (`localStorage`,
+key `crossy.brain.v1`, about 0.9 MB) plus one log row per round (`crossy.learning.v1`: round, games, mean score, moves, updates, loss).
+Settings > "What the AI has learned" shows the log and offers `learning_log.csv`, `learned_weights.json`, a learning ON/OFF switch and
+"Reset AI to original". Code: `expo-game/src/ai/brain.ts`; hooks in `AutoPilot.ts` and `GameEngine.gameOver`.
+`expo-game/tests/brain_parity.test.ts` checks that three TypeScript updates match PyTorch (`tests/make_brain_case.py`) to 5e-7.
+
+Limits: only the player AI learns (the level maker is fixed); the replay buffer is not saved between sessions (the weights are);
+whether it improves over many rounds has not been measured, and fine-tuning on a few games can also make it worse, hence the reset button.

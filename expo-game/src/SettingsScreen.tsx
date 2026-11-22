@@ -5,6 +5,7 @@ import { Asset } from "expo-asset";
 import { download, downloadUrl } from "@/download";
 import { Match, clearMatches, loadMatches, matchesCsv } from "@/matchLog";
 import { figures, summary } from "@/reportData";
+import { brain } from "@/ai/brain";
 
 /**
  * Settings = the data screen for the report:
@@ -14,6 +15,8 @@ import { figures, summary } from "@/reportData";
 export default function SettingsScreen({ onExit }: { onExit: () => void }) {
   const [matches, setMatches] = React.useState<Match[]>(loadMatches);
   const [fig, setFig] = React.useState(0);
+  const [, bump] = React.useState(0);
+  const refresh = () => bump((n) => n + 1);
   const cfgs = Object.entries(summary.configs || {}) as [string, any][];
   const bases = Object.entries(summary.baselines || {}) as [string, any][];
   const hasResults = cfgs.length > 0;
@@ -26,7 +29,7 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
 
   const wins = (who: string) => matches.filter((m) => m.winner === who).length;
   const everything = () =>
-    JSON.stringify({ exported: new Date().toISOString(), experiment_summary: summary, match_log: matches }, null, 2);
+    JSON.stringify({ exported: new Date().toISOString(), experiment_summary: summary, match_log: matches, learning_log: brain.log }, null, 2);
   const figUri = (i: number) => (Asset.fromModule(figures[i].src).uri || (figures[i].src as any)?.uri) as string;
 
   return (
@@ -116,6 +119,28 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
         <View style={s.rowWrap}>
           <Btn label="Match log (CSV)" onPress={() => download("matches.csv", matchesCsv(matches), "text/csv")} />
           <Btn label="Clear log" onPress={() => { clearMatches(); setMatches([]); }} />
+        </View>
+
+        <Text style={[s.h2, { marginTop: 30 }]}>WHAT THE AI HAS LEARNED</Text>
+        <Text style={s.p}>
+          After every round the AI trains on what it just did (Double DQN, same update as the Python training) and the new
+          weights are saved on this computer. Learning is {brain.learningEnabled ? "ON" : "OFF"} · {brain.version} learning rounds ·{" "}
+          {brain.games} games · {brain.totalTransitions} moves learned from · {brain.totalUpdates} gradient updates.
+        </Text>
+        {brain.log.length > 0 && (
+          <Table
+            head={["Round", "Games", "Mean score", "Moves", "Updates", "Loss"]}
+            rows={brain.log.slice(-12).reverse().map((e) => [
+              `v${e.version}`, String(e.games), e.meanScore.toFixed(2), String(e.transitions), String(e.updates), e.loss.toFixed(4),
+            ])}
+            flex={[1, 1, 1.4, 1, 1, 1]}
+          />
+        )}
+        <View style={s.rowWrap}>
+          <Btn label={`Learning: ${brain.learningEnabled ? "ON" : "OFF"} (tap to switch)`} onPress={() => { brain.setLearning(!brain.learningEnabled); refresh(); }} />
+          <Btn label="Learning log (CSV)" onPress={() => download("learning_log.csv", brain.logCsv(), "text/csv")} />
+          <Btn label="Learned weights (JSON)" onPress={() => download("learned_weights.json", brain.exportWeightsJson(), "application/json")} />
+          <Btn label="Reset AI to original" onPress={() => { brain.reset(); refresh(); }} />
         </View>
 
         <Text style={[s.h2, { marginTop: 30 }]}>EVERYTHING</Text>

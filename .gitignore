@@ -12,3 +12,4 @@ dist/
 # experiment runs: keep logs/csv/best model, drop per-iteration checkpoints
 runs/*/checkpoints/
 runs/*/final.pt
+expo-game/tests/brain_case.json

@@ -4,6 +4,7 @@ import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native
 import GameView from "@/GameView";
 import SettingsScreen from "@/SettingsScreen";
 import { addMatch } from "@/matchLog";
+import { brain } from "@/ai/brain";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
 type Screen = Mode | "settings";
@@ -73,8 +74,13 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
   const [scores, setScores] = React.useState<(number | null)[]>([null, null]);
   const [size, setSize] = React.useState<{ w: number; h: number } | null>(null);
   const bothDone = scores[0] != null && scores[1] != null;
+  // the AI learns from the round that just ended, then the next round can start
+  const [learn, setLearn] = React.useState<{ done: number; total: number } | null>(null);
+  const [learned, setLearned] = React.useState<string>("");
+  const learning = learn != null;
 
   const restart = React.useCallback(() => {
+    if (brain.busy) return;
     const a = newSeed();
     setSeeds([a, mode === "you-vs-ai" ? a : newSeed()]);
     setScores([null, null]);
@@ -107,6 +113,13 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
       winner: a === b ? "TIE" : a > b ? names[0] : names[1],
       leftSeed: seeds[0], rightSeed: seeds[1],
     });
+    if (brain.learningEnabled) {
+      setLearn({ done: 0, total: 1 });
+      brain.trainRound((done, total) => setLearn({ done, total })).then((entry) => {
+        setLearn(null);
+        setLearned(entry ? `AI LEARNED  v${entry.version}  (${entry.updates} updates, saved)` : "");
+      });
+    } else setLearned("LEARNING OFF");
   }, [bothDone, round]);
 
   return (
@@ -160,7 +173,14 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
           <Text style={[styles.resultScores, outline(3)]}>
             {names[0]} {scores[0]}  -  {scores[1]} {names[1]}
           </Text>
-          <Button label="PLAY AGAIN" hint="Enter" onPress={restart} />
+          {learning ? (
+            <Text style={[styles.resultScores, outline(3)]}>AI LEARNING {learn!.done}/{learn!.total} ...</Text>
+          ) : (
+            <>
+              {!!learned && <Text style={[styles.learned, outline(2)]}>{learned}</Text>}
+              <Button label="PLAY AGAIN" hint="Enter" onPress={restart} />
+            </>
+          )}
         </View>
       )}
     </View>
@@ -207,5 +227,6 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center", gap: 14,
   },
   resultText: { fontFamily: "retro", color: "#f8e84d", fontSize: 64 },
+  learned: { fontFamily: "retro", color: "#8bf58b", fontSize: 18 },
   resultScores: { fontFamily: "retro", color: "#fff", fontSize: 28 },
 });

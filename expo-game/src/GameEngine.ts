@@ -179,6 +179,7 @@ export default class Engine {
     this._hero.moving = false;
     // Stop player from finishing a movement
     this._hero.stopAnimations();
+    this.autopilot.onEpisodeEnd();
     this.onGameEnded();
     // this.gameState = State.Game.gameOver;
 
