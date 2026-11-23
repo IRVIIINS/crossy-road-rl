@@ -59,7 +59,7 @@ def run_jobs(a, deadline):
                 d = os.path.join(a.out, jid)
                 cmd = [PY, "train_long.py", "--out", d, "--seed", str(s), "--maker-mix", str(mix), "--maker", a.maker,
                        "--episodes", str(a.episodes), "--episodes-per-iter", str(a.episodes_per_iter),
-                       "--eval-episodes", str(a.eval_episodes), "--deadline", str(min(deadline, time.time() + per_job_h * 3600))]
+                       "--eval-episodes", str(a.eval_episodes), "--deadline", str(min(deadline, time.time() + per_job_h * 3600)), "--device", a.device]
                 os.makedirs(d, exist_ok=True)
                 log = open(os.path.join(d, "log.txt"), "a")
                 running[jid] = (subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, **lowprio()), log)
@@ -183,6 +183,7 @@ if __name__ == "__main__":
     p.add_argument("--maker", default="lm_runs/s0/best.pt")
     p.add_argument("--out", default="long_run")
     p.add_argument("--no-cotrain", action="store_true")
+    p.add_argument("--device", default="cpu", help="cpu or cuda: where each worker trains its network (run bench_device.py to see which is faster)")
     a = p.parse_args()
     os.makedirs(a.out, exist_ok=True)
     started = os.path.join(a.out, "started_at.txt")

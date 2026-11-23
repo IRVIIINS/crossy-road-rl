@@ -24,6 +24,16 @@ python overnight.py --hours 0.1 --reserve-hours 0.04 --workers 2 --seeds 1 --epi
 ```
 It should end with `ALL DONE`. Delete the `smoke_test` folder afterwards.
 
+## Optional: use the GPU (RTX 4080)
+Most of the training time is the neural network update on every step (about 95% on one CPU core), not the game sim, so the GPU may help.
+Install the CUDA build of torch instead of the CPU one, then compare:
+```
+pip install torch --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
+python bench_device.py
+```
+If the `cuda` line shows fewer ms/step than `cpu`, add `--device cuda` to the run command below. All workers share the one GPU, so you can
+also raise `--workers` (try your core count minus 2). The selection and final tests still run on the CPU.
+
 ## The real run (11:00 pm)
 ```
 cd crossy-road-rl

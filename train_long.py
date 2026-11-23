@@ -52,6 +52,7 @@ def main():
     p.add_argument("--lr-final", type=float, default=1e-4)
     p.add_argument("--eps-decay", type=int, default=50_000)
     p.add_argument("--ckpt-every", type=int, default=10)
+    p.add_argument("--device", default="cpu", help="cpu or cuda")
     p.add_argument("--deadline", type=float, default=0, help="unix time at which to stop (0 = none)")
     a = p.parse_args()
     os.makedirs(os.path.join(a.out, "checkpoints"), exist_ok=True)
@@ -59,7 +60,7 @@ def main():
     random.seed(a.seed); np.random.seed(a.seed); torch.manual_seed(a.seed); torch.set_num_threads(1)
 
     maker_net = LevelMaker.load(a.maker).net
-    agent = DQNAgent(ExpoCrossySim(0).obs_size, 5, device="cpu", eps_decay_steps=a.eps_decay, lr=a.lr)
+    agent = DQNAgent(ExpoCrossySim(0).obs_size, 5, device=a.device, eps_decay_steps=a.eps_decay, lr=a.lr)
     eval_seeds = [10_000 + i for i in range(a.eval_episodes)]
     rng = random.Random(a.seed * 7919 + 13)
     it, ep_total, best, best_it, rows = 0, 0, -1.0, 0, []
