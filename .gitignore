@@ -15,3 +15,4 @@ runs/*/final.pt
 expo-game/tests/brain_case.json
 long_run/
 smoke_test/
+long_run.log
