@@ -13,3 +13,5 @@ dist/
 runs/*/checkpoints/
 runs/*/final.pt
 expo-game/tests/brain_case.json
+long_run/
+smoke_test/
