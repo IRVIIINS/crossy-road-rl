@@ -2,3 +2,50 @@
 [main_s3] it  2 ep   400 eps 0.85 | train   1.9 | eval   3.7± 2.9 max  15 * | 21s
 [main_s3] it  3 ep   600 eps 0.78 | train   2.0 | eval   4.2± 3.1 max  17 * | 34s
 [main_s3] it  4 ep   800 eps 0.70 | train   2.2 | eval   3.3± 2.3 max  13 | 51s
+[main_s3] it  5 ep  1000 eps 0.61 | train   2.4 | eval   4.6± 3.2 max  16 * | 68s
+[main_s3] it  6 ep  1200 eps 0.53 | train   2.3 | eval   3.5± 2.6 max  13 | 85s
+[main_s3] it  7 ep  1400 eps 0.43 | train   2.5 | eval   3.8± 3.3 max  16 | 102s
+[main_s3] it  8 ep  1600 eps 0.34 | train   2.6 | eval   3.3± 2.1 max  10 | 120s
+[main_s3] it  9 ep  1800 eps 0.25 | train   2.9 | eval   3.7± 3.1 max  14 | 140s
+[main_s3] it 10 ep  2000 eps 0.14 | train   2.9 | eval   4.0± 3.1 max  14 | 161s
+[main_s3] it 11 ep  2200 eps 0.05 | train   3.1 | eval   3.9± 2.9 max  14 | 185s
+[main_s3] it 12 ep  2400 eps 0.05 | train   3.1 | eval   4.2± 3.8 max  17 | 209s
+[main_s3] it 13 ep  2600 eps 0.05 | train   3.0 | eval   3.3± 2.4 max  10 | 236s
+[main_s3] it 14 ep  2800 eps 0.05 | train   3.2 | eval   3.7± 2.4 max  14 | 261s
+[main_s3] it 15 ep  3000 eps 0.05 | train   3.8 | eval   5.3± 4.2 max  20 * | 287s
+[main_s3] it 16 ep  3200 eps 0.05 | train   4.0 | eval   4.7± 3.5 max  16 | 315s
+[main_s3] it 17 ep  3400 eps 0.05 | train   3.8 | eval   5.1± 4.1 max  17 | 340s
+[main_s3] it 18 ep  3600 eps 0.05 | train   4.4 | eval   5.4± 4.2 max  19 * | 368s
+[main_s3] it 19 ep  3800 eps 0.05 | train   4.4 | eval   5.5± 4.2 max  19 * | 398s
+[main_s3] it 20 ep  4000 eps 0.05 | train   4.3 | eval   6.0± 4.9 max  20 * | 428s
+[main_s3] it 21 ep  4200 eps 0.05 | train   4.7 | eval   7.6± 6.0 max  32 * | 456s
+[main_s3] it 22 ep  4400 eps 0.05 | train   6.0 | eval   7.8± 7.7 max  40 * | 489s
+[main_s3] it 23 ep  4600 eps 0.05 | train   6.1 | eval   6.8± 5.2 max  26 | 517s
+[main_s3] it 24 ep  4800 eps 0.05 | train   6.6 | eval   7.3± 6.3 max  34 | 550s
+[main_s3] it 25 ep  5000 eps 0.05 | train   6.7 | eval   8.8± 6.9 max  37 * | 581s
+[main_s3] it 26 ep  5200 eps 0.05 | train   6.7 | eval   8.4± 5.9 max  27 | 611s
+[main_s3] it 27 ep  5400 eps 0.05 | train   7.4 | eval   8.6± 6.5 max  25 | 645s
+[main_s3] it 28 ep  5600 eps 0.05 | train   7.7 | eval   9.8± 8.2 max  39 * | 679s
+[main_s3] it 29 ep  5800 eps 0.05 | train   7.0 | eval   9.5± 7.2 max  37 | 709s
+[main_s3] it 30 ep  6000 eps 0.05 | train   7.1 | eval  11.8±10.2 max  42 * | 743s
+[main_s3] it 31 ep  6200 eps 0.05 | train   7.2 | eval   8.8± 5.7 max  26 | 774s
+[main_s3] it 32 ep  6400 eps 0.05 | train   6.9 | eval   8.7± 6.0 max  24 | 804s
+[main_s3] it 33 ep  6600 eps 0.05 | train   8.3 | eval   9.1± 6.6 max  35 | 836s
+[main_s3] it 34 ep  6800 eps 0.05 | train   8.7 | eval  10.6± 8.2 max  36 | 871s
+[main_s3] it 35 ep  7000 eps 0.05 | train   7.7 | eval  10.8± 9.2 max  42 | 904s
+[main_s3] it 36 ep  7200 eps 0.05 | train   8.1 | eval  10.0± 7.1 max  36 | 939s
+[main_s3] it 37 ep  7400 eps 0.05 | train   9.3 | eval  11.4±10.6 max  43 | 975s
+[main_s3] it 38 ep  7600 eps 0.05 | train   8.1 | eval  11.2±10.0 max  44 | 1009s
+[main_s3] it 39 ep  7800 eps 0.05 | train   9.0 | eval  10.6± 8.8 max  41 | 1046s
+[main_s3] it 40 ep  8000 eps 0.05 | train  10.9 | eval  10.9±10.7 max  60 | 1086s
+[main_s3] it 41 ep  8200 eps 0.05 | train  10.6 | eval  10.6±10.7 max  64 | 1126s
+[main_s3] it 42 ep  8400 eps 0.05 | train  10.5 | eval  12.6±11.6 max  50 * | 1164s
+[main_s3] it 43 ep  8600 eps 0.05 | train  11.6 | eval  13.7±18.2 max 113 * | 1204s
+[main_s3] it 44 ep  8800 eps 0.05 | train  11.1 | eval  13.3±11.2 max  52 | 1246s
+[main_s3] it 45 ep  9000 eps 0.05 | train  11.7 | eval  13.0± 9.3 max  37 | 1288s
+[main_s3] it 46 ep  9200 eps 0.05 | train  11.3 | eval  13.3± 9.8 max  55 | 1327s
+[main_s3] it 47 ep  9400 eps 0.05 | train  14.4 | eval  19.4±25.5 max 128 * | 1374s
+[main_s3] it 48 ep  9600 eps 0.05 | train  13.7 | eval  17.5±13.2 max  47 | 1414s
+[main_s3] it 49 ep  9800 eps 0.05 | train  13.8 | eval  24.4±22.4 max 101 * | 1458s
+[main_s3] it 50 ep 10000 eps 0.05 | train  15.3 | eval  14.6±13.6 max  71 | 1501s
+done: max_iters, best eval mean 24.42 at iteration 49

@@ -6,9 +6,9 @@ Held-out test: 200 episodes on seeds 20000+ that were never used for model selec
 
 | Config | Seeds | Test score | Best seed | Pooled median | Pooled max | Episodes trained |
 |---|---|---|---|---|---|---|
-| Double DQN + look-ahead (ours) | 3 | 25.45 ± 10.39 | 35.89 | 18 | 187 | 10000 |
-| no look-ahead (ablation) | 3 | 7.58 ± 0.70 | 8.26 | 6 | 41 | 10000 |
-| vanilla DQN (ablation) | 3 | 21.53 ± 1.15 | 22.84 | 16 | 133 | 10000 |
+| Double DQN + look-ahead (ours) | 5 | 23.94 ± 8.14 | 35.89 | 16 | 230 | 10000 |
+| no look-ahead (ablation) | 5 | 8.04 ± 1.04 | 9.67 | 6 | 58 | 10000 |
+| vanilla DQN (ablation) | 5 | 22.62 ± 5.27 | 31.31 | 16 | 133 | 10000 |
 
 ## Baselines (no learning)
 
@@ -25,20 +25,26 @@ Held-out test: 200 episodes on seeds 20000+ that were never used for model selec
 | main | 0 | 25.34 | 128 | 10000 | 48 | max_iters |
 | main | 1 | 15.12 | 55 | 10000 | 48 | max_iters |
 | main | 2 | 35.89 | 187 | 10000 | 48 | max_iters |
+| main | 3 | 25.70 | 230 | 10000 | 49 | max_iters |
+| main | 4 | 17.67 | 84 | 10000 | 45 | max_iters |
 | no_future | 0 | 8.26 | 41 | 10000 | 50 | max_iters |
 | no_future | 1 | 7.59 | 36 | 10000 | 44 | max_iters |
 | no_future | 2 | 6.87 | 31 | 10000 | 35 | max_iters |
+| no_future | 3 | 7.81 | 35 | 10000 | 49 | max_iters |
+| no_future | 4 | 9.67 | 58 | 10000 | 49 | max_iters |
 | vanilla | 0 | 20.69 | 133 | 10000 | 48 | max_iters |
 | vanilla | 1 | 22.84 | 131 | 10000 | 48 | max_iters |
 | vanilla | 2 | 21.06 | 84 | 10000 | 45 | max_iters |
+| vanilla | 3 | 31.31 | 118 | 10000 | 50 | max_iters |
+| vanilla | 4 | 17.20 | 116 | 10000 | 45 | max_iters |
 
 ## Death causes (fraction of test episodes)
 
 | Config | hit by car | drowned | off screen | too slow | fell behind | timeout |
 |---|---|---|---|---|---|---|
-| Double DQN + look-ahead (ours) | 25% | 22% | 2% | 36% | 15% | 0% |
-| no look-ahead (ablation) | 24% | 23% | 1% | 43% | 9% | 0% |
-| vanilla DQN (ablation) | 26% | 16% | 2% | 41% | 16% | 0% |
+| Double DQN + look-ahead (ours) | 25% | 22% | 3% | 36% | 14% | 0% |
+| no look-ahead (ablation) | 25% | 22% | 1% | 42% | 9% | 0% |
+| vanilla DQN (ablation) | 24% | 15% | 2% | 42% | 16% | 0% |
 ## Level-maker AI vs random levels (mean score, rows crossed)
 
 | Player | Random levels | Level-maker levels | Drop |

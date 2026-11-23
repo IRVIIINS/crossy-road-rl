@@ -2,9 +2,15 @@ config,seed,test_mean,test_std,test_median,test_max,episodes_trained,best_iterat
 main,0,25.34,21.958,20.0,128,10000,48,max_iters,27.3
 main,1,15.115,11.8,12.0,55,10000,48,max_iters,24.2
 main,2,35.89,35.047,23.5,187,10000,48,max_iters,28.8
+main,3,25.705,25.731,18.5,230,10000,49,max_iters,25.0
+main,4,17.67,15.957,12.0,84,10000,45,max_iters,24.2
 no_future,0,8.26,6.602,6.0,41,10000,50,max_iters,16.2
 no_future,1,7.595,5.763,6.0,36,10000,44,max_iters,16.6
 no_future,2,6.87,5.754,5.0,31,10000,35,max_iters,16.7
+no_future,3,7.81,6.292,5.0,35,10000,49,max_iters,16.0
+no_future,4,9.67,8.104,7.0,58,10000,49,max_iters,15.9
 vanilla,0,20.69,19.106,16.0,133,10000,48,max_iters,25.2
 vanilla,1,22.84,19.983,16.5,131,10000,48,max_iters,25.2
 vanilla,2,21.06,18.42,15.0,84,10000,45,max_iters,23.9
+vanilla,3,31.31,26.128,23.5,118,10000,50,max_iters,23.0
+vanilla,4,17.2,16.243,13.0,116,10000,45,max_iters,21.7

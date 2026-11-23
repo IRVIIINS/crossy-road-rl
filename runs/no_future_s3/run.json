@@ -1,0 +1,30 @@
+{
+  "config": {
+    "env": "expo",
+    "out": "runs/no_future_s3",
+    "seed": 3,
+    "episodes_per_iter": 200,
+    "max_iters": 50,
+    "max_steps": 1500,
+    "eval_episodes": 50,
+    "eps_decay": 50000,
+    "target_mean": 30.0,
+    "target_min": 10,
+    "patience": 999,
+    "min_iters": 30,
+    "no_future": true,
+    "vanilla": false,
+    "future": [
+      0
+    ],
+    "obs_size": 249,
+    "double": true
+  },
+  "stop_reason": "max_iters",
+  "best_eval_mean": 9.16,
+  "best_iteration": 49,
+  "iterations": 50,
+  "episodes": 10000,
+  "steps": 315587,
+  "seconds": 958.3
+}

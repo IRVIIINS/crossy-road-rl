@@ -58,7 +58,7 @@ Quick run without building: `python native_app.py`.
 | File | What |
 |---|---|
 | `train_iterative.py` | iterative training: rounds of 200 episodes, fixed-seed evaluation, checkpoints, best model, early stopping |
-| `run_experiments.py` | ablation study: look-ahead on/off, Double vs vanilla DQN, 3 seeds each |
+| `run_experiments.py` | ablation study: look-ahead on/off, Double vs vanilla DQN, 5 seeds each |
 | `make_report.py` | held-out test + baselines -> `results/` (tables, CSVs, figures, `summary.json`) |
 | `level_maker.py`, `train_level_maker.py`, `eval_level_maker.py` | the third AI: a DQN that builds the levels (adversarial but fair); results in `results/level_maker.*`, runs in `lm_runs/` |
 | `results/` | `tables.md`, `learning_curves.png`, `ablation_bar.png`, `death_causes.png`, `score_distribution.png`, CSVs |

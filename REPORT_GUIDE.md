@@ -21,19 +21,19 @@ footnote on page 1 with each author's involvement and percentage, and cite all p
 Suggested figures (4-6 pages is tight): `learning_curves.png`, `ablation_bar.png`, and one of `death_causes.png` /
 `score_distribution.png`. Put the per-run table in the supplementary file.
 
-## Headline results (3 seeds, 10,000 training episodes each, 200 held-out test seeds)
+## Headline results (5 seeds, 10,000 training episodes each, 200 held-out test seeds)
 
 | Config | Test score (rows) |
 |---|---|
-| Double DQN + look-ahead (ours) | 25.5 ± 10.4 (seeds: 25.3, 15.1, 35.9) |
-| vanilla DQN + look-ahead | 21.5 ± 1.2 |
-| Double DQN, **no look-ahead** | 7.6 ± 0.7 |
+| Double DQN + look-ahead (ours) | 23.9 ± 8.1 (seeds: 25.3, 15.1, 35.9, 25.7, 17.7) |
+| vanilla DQN + look-ahead | 22.6 ± 5.3 (seeds: 20.7, 22.8, 21.1, 31.3, 17.2) |
+| Double DQN, **no look-ahead** | 8.0 ± 1.0 |
 | hand-written rule / always UP / random | 4.6 / 3.0 / 1.4 |
 
-* **Look-ahead features are the big win** (about 3.4x): with only the present positions of cars and logs the agent barely beats a
-  hand-written rule; with where they will be in 6 and 12 frames it triples its score. All three seeds agree.
+* **Look-ahead features are the big win** (about 3x): with only the present positions of cars and logs the agent barely beats a
+  hand-written rule; with where they will be in 6 and 12 frames it triples its score. All five seeds agree (best no-look-ahead seed 9.7 < worst look-ahead seed 15.1).
 * **Double DQN vs vanilla DQN: no reliable difference here.** The means differ by 4 rows but the Double-DQN runs vary a lot between seeds
-  (15 to 36), so with 3 seeds you cannot claim Double DQN is better. Say exactly that in the report.
+  (15 to 36). With 5 seeds each the difference is 1.3 rows (Welch t-test p = 0.77, Mann-Whitney p = 0.84): **no evidence that Double DQN beats vanilla DQN here**. Say exactly that, as a null result.
 * High seed-to-seed variance of the full model is itself a finding (DQN is unstable; report mean +- std, not the best seed).
 * Most deaths are "too slow" (36-43%), i.e. the agent waits too long for a gap and the idle limit ends the episode, rather than being hit.
 * Early stopping: the ablation runs use `--patience 999` (no early stop) so all configs get an identical budget. In a first attempt with patience 10,
