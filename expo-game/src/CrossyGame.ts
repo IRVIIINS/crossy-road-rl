@@ -19,6 +19,11 @@ import Rows from "./Row";
 import { Fill } from "./Row/Grass";
 import { designRow, ROAD_SPEEDS, WATER_SPEEDS } from "./ai/levelMaker";
 
+// ?rails=0 removes train tracks (the training simulator has none); used to measure how much they matter
+const RAILS = (() => {
+  try { return new URLSearchParams(window.location.search).get("rails") !== "0"; } catch { return true; }
+})();
+
 // TODO Add to state - disable/enable when battery is low
 const useParticles = true;
 const useShadows = true;
@@ -306,7 +311,7 @@ export class CrossyGameMap extends GameMap {
         break;
       case "roadtype":
         // rows chosen by the level-maker AI stay roads (design >= 1): the player AI was trained on a simulator without trains
-        if (design < 1 && ((Math.random() * 4) | 0) === 0) {
+        if (design < 1 && RAILS && ((Math.random() * 4) | 0) === 0) {
           this.railRoads.items[this.railRoads.count].position.z = this.rowCount;
           this.railRoads.items[this.railRoads.count].active = true;
           this.setRow(this.rowCount, {

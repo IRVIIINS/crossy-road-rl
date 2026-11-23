@@ -94,8 +94,11 @@ Real game (Expo engine, headless harness `tests/real_game_eval/`, learning off, 
 
 So the real game is about 0.6-0.7x the simulator, not the 1-7 vs 25 quoted earlier (that mixed in the level maker and a missing "too slow" rule: the
 real game has no auto-scrolling camera, so a stalling AI never died; the app now ends a round after 25 decisions without a new row, and after falling 3 rows behind, like the simulator).
-Remaining gap: the simulator has no train tracks (rows the level maker designs are kept as roads in the app, but the original random levels still contain trains),
-plus small physics differences. Report both numbers and call the simulator the experimental environment.
+Train tracks do NOT explain the remaining gap: with `?rails=0` (no trains at all) the real-game score on random levels is 13.1 and 14.6 (two runs of 80 games)
+versus 15.6 with trains, i.e. no improvement, so adding rails to the simulator and retraining would not help. Decisions happen every 12 frames in the real game too
+(measured), so timing is not the cause either. The cause is unidentified (other differences between the simulator's level generator/physics and the game's);
+say so. Report both numbers and call the simulator the experimental environment. Closing the gap would need training in the real engine
+(`tests/real_game_eval/` runs it about 50x faster than real time, but that is still about 0.3 games/s per core).
 
 Online learning (opt-in in the app) lowers the score: 27.2 -> 9.7 on random levels, 7.7 -> 5.1 on maker levels after 150 rounds, 3 seeds
 (`results/online_learning.png`). Present it as a negative result and an instance of the instability of DQN, not as "the AI keeps improving".
