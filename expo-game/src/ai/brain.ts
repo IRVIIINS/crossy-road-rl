@@ -10,7 +10,7 @@
  *
  * Pure TypeScript (no React Native imports) so it can be tested in Node against PyTorch.
  */
-import baseWeights from "./weights.json";
+import { APP, LATEST, blockWeights, pcBlock } from "./blocks";
 
 type Net = { dims: number[]; W: Float32Array[]; B: Float32Array[] };
 export type Transition = { s: Float32Array; a: number; r: number; s2: Float32Array; done: number };
@@ -177,8 +177,15 @@ const unb64 = (s: string) => {
 const ls = () => { try { return window.localStorage; } catch { return null; } };
 
 export class Brain {
-  original = netFromJson(baseWeights as any);
-  learner = new Learner(cloneNet(this.original));
+  private nets: Record<string, Net> = {};
+  /** the fixed network of a PC training block (see blocks.ts) */
+  netFor(id: string): Net {
+    if (!this.nets[id]) this.nets[id] = netFromJson(blockWeights(id) ?? blockWeights(LATEST));
+    return this.nets[id];
+  }
+  base = LATEST; // the PC block that in-app learning started from
+  get original() { return this.netFor(this.base); }
+  learner = new Learner(cloneNet(this.netFor(LATEST)));
   buffer: Transition[] = [];
   fresh: Transition[] = []; // this round's transitions (decide how many updates to do)
   gameScores: number[] = []; // AI scores since the last trainRound
@@ -195,13 +202,17 @@ export class Brain {
     try { if (new URLSearchParams(window.location.search).get("learn") === "0") this.learningEnabled = false; } catch {}
   }
 
-  /** learning ON: the policy that has been learning; OFF: always the original shipped network */
-  get net() { return this.learningEnabled ? this.learner.net : this.original; }
+  /** learning ON: the policy that has been learning; OFF: the newest PC block */
+  get net() { return this.learningEnabled ? this.learner.net : this.netFor(LATEST); }
   get totalUpdates() { return this.learner.updates; }
+  /** block an AI pane uses unless one is picked: the in-app learner while learning is ON, else the newest PC block */
+  defaultBlock() { return this.learningEnabled ? APP : LATEST; }
 
-  act(obs: Float32Array): number {
-    if (this.learningEnabled && Math.random() < EPS_EXPLORE) return Math.floor(Math.random() * 5);
-    const q = qOne(this.net, obs);
+  /** block = a PC block id (fixed network, greedy) or "app" (the in-app learner, explores a little while learning) */
+  act(obs: Float32Array, block: string = this.defaultBlock()): number {
+    const app = block === APP;
+    if (app && this.learningEnabled && Math.random() < EPS_EXPLORE) return Math.floor(Math.random() * 5);
+    const q = qOne(app ? this.learner.net : this.netFor(block), obs);
     let best = 0;
     for (let i = 1; i < q.length; i++) if (q[i] > q[best]) best = i;
     return best;
@@ -255,7 +266,7 @@ export class Brain {
     try {
       const n = this.learner.net;
       s.setItem(KEY_NET, JSON.stringify({
-        dims: n.dims, version: this.version, games: this.games, transitions: this.totalTransitions, updates: this.learner.updates,
+        dims: n.dims, base: this.base, version: this.version, games: this.games, transitions: this.totalTransitions, updates: this.learner.updates,
         W: n.W.map(b64), B: n.B.map(b64),
       }));
       s.setItem(KEY_LOG, JSON.stringify(this.log.slice(-500)));
@@ -270,7 +281,8 @@ export class Brain {
       const raw = s.getItem(KEY_NET);
       if (!raw) return;
       const d = JSON.parse(raw);
-      if (JSON.stringify(d.dims) !== JSON.stringify(this.original.dims)) return; // different architecture: ignore
+      if (JSON.stringify(d.dims) !== JSON.stringify(this.netFor(LATEST).dims)) return; // different architecture: ignore
+      this.base = d.base && pcBlock(d.base) ? d.base : "original"; // saved before blocks existed: learned on top of the original player
       this.learner = new Learner({ dims: d.dims, W: d.W.map(unb64), B: d.B.map(unb64) });
       this.learner.updates = d.updates || 0;
       this.version = d.version || 0; this.games = d.games || 0; this.totalTransitions = d.transitions || 0;
@@ -282,8 +294,10 @@ export class Brain {
     try { ls()?.setItem(KEY_ON, on ? "1" : "0"); } catch {}
   }
 
-  reset() {
-    this.learner = new Learner(cloneNet(this.original));
+  /** forget everything learned in the app and start again from a PC block (default: the newest) */
+  reset(base: string = LATEST) {
+    this.base = pcBlock(base) ? base : LATEST;
+    this.learner = new Learner(cloneNet(this.netFor(this.base)));
     this.buffer = []; this.fresh = []; this.gameScores = []; this.log = [];
     this.version = 0; this.games = 0; this.totalTransitions = 0;
     const s = ls(); try { s?.removeItem(KEY_NET); s?.removeItem(KEY_LOG); } catch {}

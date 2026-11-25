@@ -1,6 +1,7 @@
 import { swipeDirections } from "@/components/GestureView";
 import { ACTION_NAMES, buildObservation } from "./policy";
 import { brain } from "./brain";
+import { APP } from "./blocks";
 
 const START_ROW = 8; // hero starts on row 8 (GameSettings.startingRow); the displayed score is rows beyond it
 const MAX_IDLE = 25; // decisions without reaching a new row before the round is ended (same 'too slow' rule as the training simulator)
@@ -12,6 +13,8 @@ const FRAMES_PER_DECISION = 12; // the policy was trained with one decision per 
  */
 export default class AutoPilot {
   enabled = false;
+  /** which trained player drives this pane: a PC training block id, or "app" (the in-app learner); see blocks.ts */
+  block: string = brain.defaultBlock();
   private frames = 0;
   private logged = 0;
   private debug = false;
@@ -44,11 +47,12 @@ export default class AutoPilot {
     if (z > this.best) this.idle = 0;
     else if (++this.idle > MAX_IDLE) { e.gameOver(); return; } // the real game has no auto-scrolling camera, so stalling would never end
     this.best = Math.max(this.best, z);
-    if (this.prevObs) {
+    const learns = this.block === APP; // only the in-app learner learns; PC blocks are fixed
+    if (this.prevObs && learns) {
       // outcome of the previous decision: -0.02 per step, +1 per new row (same reward as training)
       brain.add({ s: this.prevObs, a: this.prevAction, r: -0.02 + (this.best - this.prevBest), s2: obs, done: 0 });
     }
-    const a = brain.act(obs);
+    const a = brain.act(obs, this.block);
     this.prevObs = obs;
     this.prevAction = a;
     this.prevBest = this.best;
@@ -65,6 +69,7 @@ export default class AutoPilot {
     if (!this.enabled || this.ended) return; // the engine can report the same death on several frames
     this.ended = true;
     const e = this.engine;
+    if (this.block !== APP) { this.prevObs = null; return; }
     if (this.prevObs) {
       const z = e._hero ? Math.round(e._hero.position.z) : this.best;
       this.best = Math.max(this.best, z);
