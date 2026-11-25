@@ -1,9 +1,10 @@
-name: Build releases (v1, v2, v3)
+name: Build releases (v1, v2, v3, v4)
 
-# One run publishes three GitHub releases:
+# One run publishes four GitHub releases:
 #   v1 - first version: simple 2D game + DQN agent (source only)
 #   v2 - improved 2D pygame game with AI, as a Mac app  ("Crossy Road v2.app")
 #   v3 - the Expo Crossy Road 3D game + the AI autopilot, as a Mac app ("Crossy Road v3.app")
+#   v4 - same game as v3 with the simplified menu (Settings on key 0), as a Mac app ("Crossy Road v4.app")
 
 on:
   workflow_dispatch:
@@ -87,3 +88,40 @@ jobs:
           gh release create v3 CrossyRoad-v3-mac.zip --target "${GITHUB_SHA}" \
             --title "Crossy Road v3 - 3D game (expo-crossy-road) + AI (Mac app)" \
             --notes "Native Apple Silicon Mac app: the Expo Crossy Road 3D game with the AI autopilot. Game menu: New game (AI plays) / (you play); Cmd+P toggles the AI."
+
+  v4:
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the game (web bundle)
+        working-directory: expo-game
+        env:
+          CI: "1"
+        run: |
+          npm install --legacy-peer-deps --no-audit --no-fund
+          npx expo export --platform web
+          rm -rf ../desktop/web
+          cp -R dist ../desktop/web
+      - name: Package Crossy Road v4.app (Electron)
+        working-directory: desktop
+        run: |
+          npm install --no-audit --no-fund --save-dev electron@33 @electron/packager
+          npx @electron/packager . "Crossy Road v4" --platform=darwin --arch=arm64 \
+            --out=out --overwrite --ignore="^/out" --ignore="^/web"
+          APP="out/Crossy Road v4-darwin-arm64/Crossy Road v4.app"
+          # the packager drops *.obj files (the 3D models), so copy the web bundle in by hand
+          cp -R web "$APP/Contents/Resources/web"
+          test "$(find "$APP/Contents/Resources/web" -name '*.obj' | wc -l)" -gt 20
+          codesign --force --deep --sign - "$APP"
+          ditto -c -k --keepParent "$APP" ../CrossyRoad-v4-mac.zip
+      - name: Publish v4
+        run: |
+          gh release delete v4 --cleanup-tag -y || true
+          gh release create v4 CrossyRoad-v4-mac.zip --target "${GITHUB_SHA}" \
+            --title "Crossy Road v4 - 3D game + AI, simplified menu (Mac app)" \
+            --notes "Native Apple Silicon Mac app: the Expo Crossy Road 3D game with the AI autopilot. Menu: 1 = YOU vs AI, 2 = AI vs AI; 0 opens Settings. Game menu: Cmd+P toggles the AI."

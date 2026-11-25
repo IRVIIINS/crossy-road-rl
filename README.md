@@ -40,12 +40,13 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 | **v1** | first version: simple 2D game + DQN agent | source only |
 | **v2** | improved 2D pygame game (smooth art) + AI | `Crossy Road v2.app` |
 | **v3** | the real expo-crossy-road 3D game (3D graphics and gameplay) + the AI autopilot | `Crossy Road v3.app` |
+| **v4** | v3 with a simplified menu: only YOU vs AI and AI vs AI, Settings opens with key 0 | `Crossy Road v4.app` |
 
-GitHub builds the apps (Actions -> *Build releases*). Install v3 (v2 is the same with `v2`); each version has its own app name, so they never overwrite each other:
+GitHub builds the apps (Actions -> *Build releases*). Install v4 (v2 and v3 are the same with `v2` / `v3`); each version has its own app name, so they never overwrite each other:
 ```bash
-cd ~/Downloads && curl -L -o CrossyRoad-v3-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/v3/CrossyRoad-v3-mac.zip && ditto -x -k CrossyRoad-v3-mac.zip /Applications && xattr -cr "/Applications/Crossy Road v3.app" && open "/Applications/Crossy Road v3.app"
+cd ~/Downloads && curl -L -o CrossyRoad-v4-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/v4/CrossyRoad-v4-mac.zip && ditto -x -k CrossyRoad-v4-mac.zip /Applications && xattr -cr "/Applications/Crossy Road v4.app" && open "/Applications/Crossy Road v4.app"
 ```
-v3 is in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (you on the left, the AI on the right, same road) and **AI vs AI** (two AIs, one road each). The levels are built by the level-maker AI. Keys: 1 / 2 pick a mode, R restart, Esc back to the menu.
+v3 and v4 are in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (you on the left, the AI on the right, same road) and **AI vs AI** (two AIs, one road each). The levels are built by the level-maker AI. Keys: 1 / 2 pick a mode, 0 opens Settings (v4), R restart, Esc back to the menu.
 
 ### (Optional) simple 2D pygame app
 
