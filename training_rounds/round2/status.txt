@@ -1,0 +1,14 @@
+2026-11-24 19:14
+[mix50_s0] it  672 ep 134400 | train  20.0 | random  37.1 maker  18.9 | best  36.3@616 | 612 min
+[mix50_s2] it  707 ep 141400 | train  15.9 | random  44.8 maker  10.5 | best  33.6@604 | 611 min
+[mix50_s3] it  711 ep 142200 | train  16.5 | random  31.1 maker  13.8 | best  29.6@570 | 611 min
+finished: stopped
+[mix50_s5] it  457 ep  91400 | train  12.0 | random  24.7 maker   3.8 | best  22.0@245 | 351 min
+[mix50_s6] it  434 ep  86800 | train   7.5 | random  22.4 maker   2.2 | best  28.3@243 | 351 min
+[random_s0] it  552 ep 110400 | train  22.7 | random  40.1 maker  16.1 | best  50.1@346 | 614 min
+finished: stopped
+[random_s2] it  577 ep 115400 | train  22.0 | random  38.6 maker  13.3 | best  35.9@129 | 612 min
+[random_s3] it  565 ep 113000 | train  26.2 | random  51.4 maker  22.8 | best  45.2@554 | 612 min
+[random_s4] it  323 ep  64600 | train  26.2 | random  44.0 maker  18.6 | best  45.6@311 | 351 min
+[random_s5] it  312 ep  62400 | train  27.0 | random  58.4 maker  23.9 | best  42.7@310 | 351 min
+[random_s6] it  330 ep  66000 | train  21.6 | random  37.4 maker  11.4 | best  28.1@113 | 351 min

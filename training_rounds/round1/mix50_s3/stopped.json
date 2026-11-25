@@ -1,0 +1,22 @@
+{
+ "reason": "stopped",
+ "iterations": 376,
+ "episodes": 75200,
+ "best_eval_both": 22.36,
+ "best_iteration": 156,
+ "config": {
+  "out": "long_run\\mix50_s3",
+  "seed": 3,
+  "maker": "lm_runs/s0/best.pt",
+  "maker_mix": 0.5,
+  "episodes": 150000,
+  "episodes_per_iter": 200,
+  "eval_episodes": 100,
+  "lr": 0.0005,
+  "lr_final": 0.0001,
+  "eps_decay": 50000,
+  "ckpt_every": 10,
+  "device": "cpu",
+  "deadline": 1795479373.0615308
+ }
+}

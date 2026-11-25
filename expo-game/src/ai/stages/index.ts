@@ -2,4 +2,6 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const STAGE_WEIGHTS: Record<string, any> = {
   "original": require("../weights.json"),
+  "round1": require("./round1.json"),
+  "round2": require("./round2.json"),
 };

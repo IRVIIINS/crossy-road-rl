@@ -192,14 +192,22 @@ function Cumulative() {
   const series: Series[] = [];
   const markers: { x: number; label: string; color: string }[] = [];
   let end = 0;
+  const add = (id: string, label: string, pts: Pt[]) => {
+    if (!pts.length) return;
+    markers.push({ x: pts[0][0], label, color: blockColor(id) });
+    series.push({ color: blockColor(id), points: series.length ? [series[series.length - 1].points.slice(-1)[0], ...pts] : pts });
+    end = pts[pts.length - 1][0];
+  };
   for (const b of line) {
     const off = curveOffset(b);
     const pts = b.curve.map(([g, r]) => [g + off, r] as Pt).filter(([x]) => x > end || end === 0);
-    if (pts.length) {
-      markers.push({ x: pts[0][0], label: b.label, color: blockColor(b.id) });
-      series.push({ color: blockColor(b.id), points: end > 0 && series.length ? [series[series.length - 1].points.slice(-1)[0], ...pts] : pts });
-      end = pts[pts.length - 1][0];
-    }
+    // a continued round: the part of this run's curve played during the earlier round gets that round's colour
+    const prev = b.continues ? pcBlock(b.continues) : undefined;
+    const split = prev?.jobGames?.[b.winner.job];
+    if (prev && split && !line.includes(prev)) {
+      add(prev.id, `${prev.label} (same run)`, pts.filter(([x]) => x <= split));
+      add(b.id, b.label, pts.filter(([x]) => x > split));
+    } else add(b.id, b.label, pts);
   }
   if (brain.base === lastPc?.id && brain.log.length) {
     let g = lastPc.games;

@@ -1,0 +1,22 @@
+{
+ "reason": "stopped",
+ "iterations": 282,
+ "episodes": 56400,
+ "best_eval_both": 33.510000000000005,
+ "best_iteration": 126,
+ "config": {
+  "out": "long_run\\random_s0",
+  "seed": 0,
+  "maker": "lm_runs/s0/best.pt",
+  "maker_mix": 0.0,
+  "episodes": 150000,
+  "episodes_per_iter": 200,
+  "eval_episodes": 100,
+  "lr": 0.0005,
+  "lr_final": 0.0001,
+  "eps_decay": 50000,
+  "ckpt_every": 10,
+  "device": "cpu",
+  "deadline": 1795479373.0615308
+ }
+}

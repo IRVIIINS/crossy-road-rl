@@ -1,0 +1,9 @@
+2026-11-23 18:06
+[mix50_s0] it  363 ep  72600 | train  16.7 | random  14.9 maker  13.9 | best  33.4@331 | 260 min
+[mix50_s1] it  378 ep  75600 | train  16.4 | random  20.6 maker  21.7 | best  35.2@370 | 260 min
+[mix50_s2] it  351 ep  70200 | train  16.9 | random  38.7 maker  18.1 | best  32.8@308 | 259 min
+[mix50_s3] it  375 ep  75000 | train   8.5 | random  23.0 maker   3.8 | best  22.4@156 | 260 min
+[random_s0] it  281 ep  56200 | train  20.6 | random  30.9 maker  11.8 | best  33.5@126 | 260 min
+[random_s1] it  284 ep  56800 | train  18.9 | random  30.8 maker  16.4 | best  37.0@214 | 259 min
+[random_s2] it  276 ep  55200 | train  19.8 | random  33.0 maker  12.2 | best  35.9@129 | 260 min
+[random_s3] it  289 ep  57800 | train  20.9 | random  41.3 maker  10.8 | best  31.6@246 | 260 min

@@ -19,6 +19,7 @@ export type Block = {
   updates: number | null; // gradient updates of that line
   gamesAllRuns: number; // games this block added, over all its runs
   cpuHoursAllRuns?: number | null;
+  jobGames?: Record<string, number>; // games each run had played at the end of this block
   runs: number;
   startsFrom: string | null; // fine-tuned from this block
   continues: string | null; // resumed the runs of this block

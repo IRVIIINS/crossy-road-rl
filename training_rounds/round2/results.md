@@ -1,0 +1,23 @@
+# Long-run results (test = 300 unseen seeds, best checkpoint chosen on 200 other seeds)
+
+| Config | Runs | Test: random levels | Test: level-maker levels |
+|---|---|---|---|
+| random | 7 | 47.30 ± 4.51 | 24.45 ± 5.53 |
+| mix50 | 7 | 35.93 ± 3.45 | 22.84 ± 9.64 |
+
+| Run | Checkpoint | Selection score | Random | Maker |
+|---|---|---|---|---|
+| mix50_s0 | best.pt | 33.56 | 41.07 | 27.06 |
+| mix50_s1 | iter_0640.pt | 33.54 | 31.42 | 34.94 |
+| mix50_s2 | best.pt | 33.42 | 40.17 | 24.14 |
+| mix50_s3 | iter_0570.pt | 27.13 | 33.29 | 18.67 |
+| mix50_s4 | best.pt | 33.53 | 37.49 | 33.0 |
+| mix50_s5 | iter_0380.pt | 20.5 | 35.05 | 4.54 |
+| mix50_s6 | best.pt | 27.42 | 33.0 | 17.5 |
+| random_s0 | iter_0350.pt | 43.85 | 47.08 | 32.62 |
+| random_s1 | best.pt | 33.56 | 42.97 | 23.49 |
+| random_s2 | iter_0570.pt | 33.99 | 45.14 | 24.1 |
+| random_s3 | iter_0560.pt | 38.48 | 51.4 | 23.83 |
+| random_s4 | best.pt | 40.65 | 53.88 | 29.0 |
+| random_s5 | iter_0310.pt | 42.35 | 50.35 | 24.86 |
+| random_s6 | best.pt | 26.38 | 40.26 | 13.27 |

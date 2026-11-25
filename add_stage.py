@@ -52,6 +52,17 @@ def run_summary(z, job):
     return rows, meta
 
 
+def active_hours(rows):
+    """training time of a run, leaving out gaps where the PC slept or the run was stopped (a gap > 30 min between two
+    iterations counts as one normal iteration: the 'seconds' column is wall-clock time)"""
+    t, prev, steps = 0.0, 0.0, []
+    for r in rows:
+        sec = float(r["seconds"]); d = sec - prev; prev = sec
+        steps.append(d)
+    typical = sorted(steps)[len(steps) // 2] if steps else 0
+    return sum(d if d <= 1800 else typical for d in steps) / 3600
+
+
 def checkpoint_iteration(ck, rows, meta):
     m = re.match(r"iter_(\d+)\.pt", ck)
     if m: return int(m.group(1))
@@ -124,7 +135,7 @@ def main():
         for r in res:
             rr, _ = run_summary(z, r["job"])
             job_games[r["job"]] = int(rr[-1]["episodes"]) if rr else 0
-            job_hours[r["job"]] = round(float(rr[-1]["seconds"]) / 3600, 2) if rr else 0
+            job_hours[r["job"]] = round(active_hours(rr), 2) if rr else 0
         cross = z.read("cross_eval.md").decode("utf-8") if "cross_eval.md" in names else ""
         step = max(1, len(upto) // 60)
         curve = [[int(r["episodes"]), float(r["eval_random"]), float(r["eval_maker"])] for r in upto[::step]]
@@ -132,7 +143,7 @@ def main():
     open(os.path.join(ROOT, "models", f"expo_{a.id}.pt"), "wb").write(winner_pt)
     export_weights(winner_pt, os.path.join(STAGES, f"{a.id}.json"))
 
-    games, hours, updates = int(last.get("episodes", 0)), float(last.get("seconds", 0)) / 3600, int(last.get("steps", 0))
+    games, hours, updates = int(last.get("episodes", 0)), active_hours(upto), int(last.get("steps", 0))
     # a continued round re-uses the earlier round's runs: count only what was added in this round
     base = prev.get(a.continues)
     old_g, old_h = (base.get("jobGames", {}), base.get("jobHours", {})) if base else ({}, {})
