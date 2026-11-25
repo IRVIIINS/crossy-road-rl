@@ -60,3 +60,10 @@ python overnight.py --hours 8 --workers 14 --seeds 14 --configs random --init mo
 ```
 Copy the start player first: the final step overwrites `models\expo_best_long.pt`. The cross-evaluation then also lists the starting player,
 so you can see whether fine-tuning improved it. Also run `powercfg /change hibernate-timeout-ac 0` (round 2 lost ~2 h to the PC sleeping).
+
+## Round 3 on a schedule (run_round3.bat)
+`run_round3.bat` runs the fine-tuning round, then `add_stage.py` (block "PC round 3") and `git push`, logging to `round3_console.log`.
+Schedule it once from PowerShell in the repo folder (it needs the venv at `%USERPROFILE%\crossy-road-rl\venv`):
+```
+Register-ScheduledTask -TaskName CrossyRound3 -Action (New-ScheduledTaskAction -Execute "$PWD\run_round3.bat" -WorkingDirectory "$PWD") -Trigger (New-ScheduledTaskTrigger -Once -At ([datetime]"2026-11-25T02:00")) -Settings (New-ScheduledTaskSettingsSet -WakeToRun)
+```
