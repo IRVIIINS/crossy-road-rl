@@ -50,3 +50,13 @@ Leave the window open. It prints a status line every 10 minutes and writes `long
 ## Result
 `long_run\results_bundle.zip` (a few MB). Upload it to the chat; it contains `results.md`, `cross_eval.md`, every run's learning curve, and the new player
 (`expo_best_long.pt`). Nothing is changed in the app until the numbers have been checked.
+
+## Fine-tuning round (start from the best player, random levels only)
+Round 2 showed `mix50` does not help (35.9 vs 47.3 on random levels), so the next round trains `random` only and starts every job
+from the round-2 winner instead of from scratch, with little exploration and a lower learning rate:
+```
+Copy-Item models\expo_best_long.pt models\start_player.pt
+python overnight.py --hours 8 --workers 14 --seeds 14 --configs random --init models/start_player.pt --eps-start 0.1 --lr 1e-4 --lr-final 5e-5 --out long_run3
+```
+Copy the start player first: the final step overwrites `models\expo_best_long.pt`. The cross-evaluation then also lists the starting player,
+so you can see whether fine-tuning improved it. Also run `powercfg /change hibernate-timeout-ac 0` (round 2 lost ~2 h to the PC sleeping).
