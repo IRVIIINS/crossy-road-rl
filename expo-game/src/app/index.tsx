@@ -47,7 +47,7 @@ function Menu({ onPick }: { onPick: (m: Screen) => void }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Digit1" || e.code === "Numpad1") onPick("you-vs-ai");
       if (e.code === "Digit2" || e.code === "Numpad2") onPick("ai-vs-ai");
-      if (e.code === "Digit3" || e.code === "Numpad3") onPick("settings");
+      if (e.code === "Digit0" || e.code === "Numpad0") onPick("settings");
     };
     window.addEventListener("keyup", onKey);
     return () => window.removeEventListener("keyup", onKey);
@@ -57,7 +57,6 @@ function Menu({ onPick }: { onPick: (m: Screen) => void }) {
       <Image source={require("../../assets/images/title.png")} style={styles.title} />
       <Button label="YOU vs AI" hint="1" onPress={() => onPick("you-vs-ai")} />
       <Button label="AI vs AI" hint="2" onPress={() => onPick("ai-vs-ai")} />
-      <Button label="SETTINGS" hint="3 · data for your report" onPress={() => onPick("settings")} />
     </View>
   );
 }
