@@ -67,3 +67,8 @@ Schedule it once from PowerShell in the repo folder (it needs the venv at `%USER
 ```
 Register-ScheduledTask -TaskName CrossyRound3 -Action (New-ScheduledTaskAction -Execute "$PWD\run_round3.bat" -WorkingDirectory "$PWD") -Trigger (New-ScheduledTaskTrigger -Once -At ([datetime]"2026-11-25T02:00")) -Settings (New-ScheduledTaskSettingsSet -WakeToRun)
 ```
+
+## More rounds back to back (run_rounds.ps1)
+`powershell -ExecutionPolicy Bypass -File .\run_rounds.ps1` trains 2 more rounds of 8 h (`-Count`, `-Hours` to change), each fine-tuned
+from the newest block, and adds + pushes each one as soon as it finishes. It first waits for the scheduled round 3 and pushes any
+finished round that was not pushed yet. Logs: `rounds_console.log` (steps) and `roundN_console.log` (training).
