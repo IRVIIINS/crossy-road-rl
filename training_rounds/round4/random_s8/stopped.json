@@ -1,0 +1,24 @@
+{
+ "reason": "stopped",
+ "iterations": 262,
+ "episodes": 52400,
+ "best_eval_both": 57.06999999999999,
+ "best_iteration": 66,
+ "config": {
+  "out": "round4\\random_s8",
+  "seed": 8,
+  "maker": "lm_runs/s0/best.pt",
+  "maker_mix": 0.0,
+  "episodes": 150000,
+  "episodes_per_iter": 200,
+  "eval_episodes": 100,
+  "lr": 0.0001,
+  "lr_final": 5e-05,
+  "eps_decay": 50000,
+  "ckpt_every": 10,
+  "device": "cpu",
+  "init": "models/expo_round3.pt",
+  "eps_start": 0.1,
+  "deadline": 1795692401.2884383
+ }
+}

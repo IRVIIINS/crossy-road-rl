@@ -5,4 +5,5 @@ export const STAGE_WEIGHTS: Record<string, any> = {
   "round1": require("./round1.json"),
   "round2": require("./round2.json"),
   "round3": require("./round3.json"),
+  "round4": require("./round4.json"),
 };
