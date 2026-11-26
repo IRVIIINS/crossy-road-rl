@@ -35,6 +35,10 @@ export type Block = {
 export const APP = "app";
 export const PC_BLOCKS: Block[] = (manifest as any).stages;
 export const LATEST = PC_BLOCKS[PC_BLOCKS.length - 1].id;
+/** combined test score (random + level-maker levels, 300 unseen seeds each); null when a block was not tested */
+export const testTotal = (b: Block) => (b.test ? b.test.random + b.test.maker : null);
+/** the strongest PC block on the test (the newest block is not always the best: later rounds can test lower) */
+export const BEST = PC_BLOCKS.reduce((a, b) => ((testTotal(b) ?? -1) > (testTotal(a) ?? -1) ? b : a), PC_BLOCKS[0]).id;
 export const COLORS = ["#b0b0b0", "#4fc3f7", "#f8e84d", "#8bf58b", "#ff8a65", "#ce93d8", "#80cbc4", "#fff59d"];
 export const APP_COLOR = "#ff6fb5";
 

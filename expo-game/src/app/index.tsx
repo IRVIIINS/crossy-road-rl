@@ -6,7 +6,7 @@ import SettingsScreen from "@/SettingsScreen";
 import BlocksScreen from "@/BlocksScreen";
 import { addMatch } from "@/matchLog";
 import { brain } from "@/ai/brain";
-import { APP, LATEST, PC_BLOCKS, blockColor, blockLabel, pcBlock } from "@/ai/blocks";
+import { APP, BEST, PC_BLOCKS, blockColor, blockLabel, pcBlock } from "@/ai/blocks";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
 type Screen = Mode | "settings" | "blocks";
@@ -29,7 +29,7 @@ function initialMode(): Screen | null {
   }
 }
 
-/** default brains: ?left=<block>&right=<block>, else the in-app learner while learning is ON, else the two newest blocks */
+/** default brains: ?left=<block>&right=<block>, else the in-app learner while learning is ON, else the best block vs the block before it */
 function initialBlocks(): Blocks {
   const ok = (b: string | null) => (b === APP || (b && pcBlock(b)) ? b : null);
   let left: string | null = null, right: string | null = null;
@@ -37,7 +37,8 @@ function initialBlocks(): Blocks {
     const q = new URLSearchParams(window.location.search);
     left = ok(q.get("left")); right = ok(q.get("right"));
   } catch {}
-  const prev = PC_BLOCKS.length > 1 ? PC_BLOCKS[PC_BLOCKS.length - 2].id : LATEST;
+  const bi = PC_BLOCKS.findIndex((b) => b.id === BEST);
+  const prev = bi > 0 ? PC_BLOCKS[bi - 1].id : BEST; // the block just before the best one
   const d = brain.defaultBlock();
   return [left ?? (d === APP ? APP : prev), right ?? d];
 }

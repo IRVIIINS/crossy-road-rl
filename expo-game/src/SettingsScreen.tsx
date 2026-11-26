@@ -6,6 +6,31 @@ import { download, downloadUrl } from "@/download";
 import { Match, clearMatches, loadMatches, matchesCsv } from "@/matchLog";
 import { figures, realGame, summary } from "@/reportData";
 import { brain } from "@/ai/brain";
+import { BEST, LATEST, PC_BLOCKS, blockLabel, pcBlock, shortGames } from "@/ai/blocks";
+
+// ------------------------------------------------------------------ training rounds on the PC (from stages.json)
+const tested = PC_BLOCKS.filter((b) => b.test);
+const first = tested[0];
+const best = pcBlock(BEST)!;
+const sum = (f: (b: (typeof PC_BLOCKS)[number]) => number | null | undefined) => PC_BLOCKS.reduce((a, b) => a + (f(b) ?? 0), 0);
+const parentOf = (b: (typeof PC_BLOCKS)[number]) => pcBlock(b.startsFrom ?? b.continues ?? "") ?? null;
+const delta = (x: number, y: number | undefined) => (y == null ? "" : ` (${x - y >= 0 ? "+" : ""}${(x - y).toFixed(1)})`);
+/** fine-tuned blocks that tested below the block they started from, on random levels and/or level-maker levels */
+const regressions = PC_BLOCKS.flatMap((b) => {
+  const p = parentOf(b);
+  if (!b.startsFrom || !p?.test || !b.test) return [];
+  const worse = [b.test.random < p.test.random && "random", b.test.maker < p.test.maker && "level-maker"].filter(Boolean);
+  return worse.length ? [`${b.label} (${worse.join(" and ")} levels)`] : [];
+});
+const blocksCsv = () => {
+  const cols = ["id", "label", "date", "starts_from", "runs", "games_all_runs", "cpu_hours_all_runs", "line_games", "line_hours",
+    "winner_run", "winner_checkpoint", "test_random", "test_maker", "test_total", "is_best", "is_newest"];
+  const rows = PC_BLOCKS.map((b) => [b.id, b.label, b.date, b.startsFrom ?? b.continues ?? "", b.runs, b.gamesAllRuns,
+    b.cpuHoursAllRuns ?? "", b.games, b.hours ?? "", b.winner.job, b.winner.checkpoint, b.test?.random ?? "", b.test?.maker ?? "",
+    b.test ? (b.test.random + b.test.maker).toFixed(2) : "", b.id === BEST ? 1 : 0, b.id === LATEST ? 1 : 0]
+    .map((v) => (/[",]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v))).join(","));
+  return [cols.join(","), ...rows].join("\n") + "\n";
+};
 
 /**
  * Settings = the data screen for the report:
@@ -29,7 +54,10 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
 
   const wins = (who: string) => matches.filter((m) => m.winner === who).length;
   const everything = () =>
-    JSON.stringify({ exported: new Date().toISOString(), experiment_summary: summary, match_log: matches, learning_log: brain.log }, null, 2);
+    JSON.stringify({
+      exported: new Date().toISOString(), training_blocks: PC_BLOCKS.map(({ curve, ...b }) => b), best_block: BEST,
+      experiment_summary: summary, match_log: matches, learning_log: brain.log,
+    }, null, 2);
   const figUri = (i: number) => (Asset.fromModule(figures[i].src).uri || (figures[i].src as any)?.uri) as string;
 
   return (
@@ -42,7 +70,9 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
         <View style={{ width: 90 }} />
       </View>
       <ScrollView contentContainerStyle={s.body}>
-        <Text style={s.h2}>EXPERIMENT RESULTS</Text>
+        <TrainingRounds />
+
+        <Text style={[s.h2, { marginTop: 30 }]}>EXPERIMENT RESULTS</Text>
         {!hasResults ? (
           <Text style={s.p}>No results bundled yet. Run run_experiments.py and make_report.py, then rebuild.</Text>
         ) : (
@@ -162,6 +192,64 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
   );
 }
 
+function TrainingRounds() {
+  const prevOf = (i: number) => (i > 0 ? PC_BLOCKS[i - 1].test ?? undefined : undefined);
+  const later = PC_BLOCKS.slice(PC_BLOCKS.findIndex((b) => b.id === BEST) + 1).filter((b) => b.test);
+  const fineTuned = PC_BLOCKS.filter((b) => b.startsFrom && b.cpuHoursAllRuns);
+  const makerTested = fineTuned.filter((b) => b.test).map((b) => b.test!.maker); // fine-tuning rounds trained on random levels only
+  const perRound = fineTuned.length ? sum((b) => (b.startsFrom ? b.cpuHoursAllRuns : 0)) / fineTuned.length : 0;
+  const learned = [
+    `Long training works: the AI went from ${first.test!.random.toFixed(1)} to ${best.test!.random.toFixed(1)} rows on random levels ` +
+      `(${(best.test!.random / first.test!.random).toFixed(1)}x) and from ${first.test!.maker.toFixed(1)} to ${best.test!.maker.toFixed(1)} ` +
+      `on level-maker levels (${(best.test!.maker / first.test!.maker).toFixed(1)}x), ${first.label} vs ${best.label}.`,
+    `Blocks are cumulative: each PC round after round 1 starts from the previous block's winning network, so ${blockLabel(LATEST)} ` +
+      `stands on ${shortGames(pcBlock(LATEST)!.games)} games of training in one line (${(pcBlock(LATEST)!.hours ?? 0).toFixed(1)} hours).`,
+    later.length
+      ? `Gains levelled off: after ${best.label}, ${later.map((b) => b.label).join(" and ")} did not beat it. Differences between runs ` +
+        `of the same round (about ±2.5 rows) are now as large as what a new round adds.`
+      : `The newest block is also the best one so far.`,
+    regressions.length
+      ? `A new block is not automatically better. Blocks that tested below the block they started from: ${regressions.join("; ")}. ` +
+        `The round publishes its best fine-tuned run even when none beats the starting player, so the app uses the best-scoring block (${best.label}), not the newest.`
+      : `Every fine-tuned block tested at least as well as the block it started from.`,
+    `The fine-tuning rounds trained only on random levels, and their level-maker score stayed between ` +
+      `${Math.min(...makerTested).toFixed(0)} and ${Math.max(...makerTested).toFixed(0)} rows. Mixing level-maker levels into training is the next thing to try.`,
+    `An "8 hour" round trains for about 6.5 hours (1.5 hours are kept for testing): 14 runs side by side on 14 CPU cores, ` +
+      `about ${perRound.toFixed(0)} CPU-hours and ${shortGames(fineTuned.length ? sum((b) => (b.startsFrom ? b.gamesAllRuns : 0)) / fineTuned.length : 0)} games per round.`,
+    `GPU vs CPU (RTX 4080 SUPER, one training worker): 3.95 vs 4.85 ms per learning step, about 20% faster, measured while the CPU was busy. ` +
+      `The network is small, so most time is the game simulation and Python; training stayed on the CPU.`,
+  ];
+
+  return (
+    <>
+      <Text style={s.h2}>TRAINING ROUNDS ON THE PC</Text>
+      <Text style={s.p}>
+        {PC_BLOCKS.length} blocks · {shortGames(sum((b) => b.gamesAllRuns))} games played over all runs ·{" "}
+        {sum((b) => b.cpuHoursAllRuns).toFixed(0)} CPU-hours · test = 300 unseen levels per block, score = rows crossed.
+        The AI uses {best.label} by default (best combined score); pick any block under TRAINING BLOCKS.
+      </Text>
+      <Table
+        head={["Block", "Date", "Started from", "Runs", "Games", "CPU h", "Random levels", "Level maker"]}
+        rows={PC_BLOCKS.map((b, i) => [
+          `${b.label}${b.id === BEST ? " ★" : ""}`, /^\d{4}-\d\d-\d\d/.test(b.date) ? b.date.slice(0, 10) : b.date.slice(0, 7), b.startsFrom || b.continues ? blockLabel((b.startsFrom ?? b.continues)!) : "scratch",
+          String(b.runs), shortGames(b.gamesAllRuns), b.cpuHoursAllRuns != null ? b.cpuHoursAllRuns.toFixed(0) : "-",
+          b.test ? `${b.test.random.toFixed(1)}${delta(b.test.random, prevOf(i)?.random)}` : "-",
+          b.test ? `${b.test.maker.toFixed(1)}${delta(b.test.maker, prevOf(i)?.maker)}` : "-",
+        ])}
+        flex={[1.6, 1.1, 1.5, 0.6, 0.8, 0.7, 1.6, 1.6]}
+      />
+      <Text style={s.note}>★ = best block, used by default. (+/-) = change from the block above.</Text>
+      <Text style={s.h3}>WHAT WE LEARNED</Text>
+      {learned.map((t, i) => (
+        <Text key={i} style={s.p}>{`${i + 1}. ${t}`}</Text>
+      ))}
+      <View style={s.rowWrap}>
+        <Btn label="Training blocks (CSV)" onPress={() => download("training_blocks.csv", blocksCsv(), "text/csv")} />
+      </View>
+    </>
+  );
+}
+
 const Btn = ({ label, onPress }) => (
   <Pressable onPress={onPress} style={({ pressed }) => [s.btn, pressed && { opacity: 0.75 }]}>
     <Text style={s.btnText}>{label}</Text>
@@ -195,6 +283,7 @@ const s = StyleSheet.create({
   h2: { fontFamily: "retro", fontSize: 20, color: "#f8e84d", marginBottom: 8 },
   h3: { fontFamily: "retro", fontSize: 14, color: "#f8e84d", marginTop: 18, marginBottom: 6 },
   p: { color: "#ddd", fontFamily: mono, fontSize: 13, marginBottom: 10 },
+  note: { color: "#999", fontFamily: mono, fontSize: 11, marginBottom: 6 },
   body: { padding: 20, maxWidth: 980, width: "100%", alignSelf: "center", paddingBottom: 60 },
   btn: { backgroundColor: "#000", borderColor: "#fff", borderWidth: 2, paddingVertical: 8, paddingHorizontal: 14 },
   btnText: { fontFamily: "retro", color: "#fff", fontSize: 13 },

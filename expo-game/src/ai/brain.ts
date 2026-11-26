@@ -10,7 +10,7 @@
  *
  * Pure TypeScript (no React Native imports) so it can be tested in Node against PyTorch.
  */
-import { APP, LATEST, blockWeights, pcBlock } from "./blocks";
+import { APP, BEST, blockWeights, pcBlock } from "./blocks";
 
 type Net = { dims: number[]; W: Float32Array[]; B: Float32Array[] };
 export type Transition = { s: Float32Array; a: number; r: number; s2: Float32Array; done: number };
@@ -180,12 +180,12 @@ export class Brain {
   private nets: Record<string, Net> = {};
   /** the fixed network of a PC training block (see blocks.ts) */
   netFor(id: string): Net {
-    if (!this.nets[id]) this.nets[id] = netFromJson(blockWeights(id) ?? blockWeights(LATEST));
+    if (!this.nets[id]) this.nets[id] = netFromJson(blockWeights(id) ?? blockWeights(BEST));
     return this.nets[id];
   }
-  base = LATEST; // the PC block that in-app learning started from
+  base = BEST; // the PC block that in-app learning started from
   get original() { return this.netFor(this.base); }
-  learner = new Learner(cloneNet(this.netFor(LATEST)));
+  learner = new Learner(cloneNet(this.netFor(BEST)));
   buffer: Transition[] = [];
   fresh: Transition[] = []; // this round's transitions (decide how many updates to do)
   gameScores: number[] = []; // AI scores since the last trainRound
@@ -202,11 +202,11 @@ export class Brain {
     try { if (new URLSearchParams(window.location.search).get("learn") === "0") this.learningEnabled = false; } catch {}
   }
 
-  /** learning ON: the policy that has been learning; OFF: the newest PC block */
-  get net() { return this.learningEnabled ? this.learner.net : this.netFor(LATEST); }
+  /** learning ON: the policy that has been learning; OFF: the best-scoring PC block */
+  get net() { return this.learningEnabled ? this.learner.net : this.netFor(BEST); }
   get totalUpdates() { return this.learner.updates; }
-  /** block an AI pane uses unless one is picked: the in-app learner while learning is ON, else the newest PC block */
-  defaultBlock() { return this.learningEnabled ? APP : LATEST; }
+  /** block an AI pane uses unless one is picked: the in-app learner while learning is ON, else the best-scoring PC block */
+  defaultBlock() { return this.learningEnabled ? APP : BEST; }
 
   /** block = a PC block id (fixed network, greedy) or "app" (the in-app learner, explores a little while learning) */
   act(obs: Float32Array, block: string = this.defaultBlock()): number {
@@ -281,7 +281,7 @@ export class Brain {
       const raw = s.getItem(KEY_NET);
       if (!raw) return;
       const d = JSON.parse(raw);
-      if (JSON.stringify(d.dims) !== JSON.stringify(this.netFor(LATEST).dims)) return; // different architecture: ignore
+      if (JSON.stringify(d.dims) !== JSON.stringify(this.netFor(BEST).dims)) return; // different architecture: ignore
       this.base = d.base && pcBlock(d.base) ? d.base : "original"; // saved before blocks existed: learned on top of the original player
       this.learner = new Learner({ dims: d.dims, W: d.W.map(unb64), B: d.B.map(unb64) });
       this.learner.updates = d.updates || 0;
@@ -294,9 +294,9 @@ export class Brain {
     try { ls()?.setItem(KEY_ON, on ? "1" : "0"); } catch {}
   }
 
-  /** forget everything learned in the app and start again from a PC block (default: the newest) */
-  reset(base: string = LATEST) {
-    this.base = pcBlock(base) ? base : LATEST;
+  /** forget everything learned in the app and start again from a PC block (default: the best-scoring one) */
+  reset(base: string = BEST) {
+    this.base = pcBlock(base) ? base : BEST;
     this.learner = new Learner(cloneNet(this.netFor(this.base)));
     this.buffer = []; this.fresh = []; this.gameScores = []; this.log = [];
     this.version = 0; this.games = 0; this.totalTransitions = 0;

@@ -3,7 +3,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-n
 
 import { brain } from "@/ai/brain";
 import {
-  APP, APP_COLOR, Block, LATEST, PC_BLOCKS, blockColor, blockLabel, curveOffset, lineage, pcBlock, shortGames,
+  APP, APP_COLOR, BEST, Block, LATEST, PC_BLOCKS, blockColor, blockLabel, curveOffset, lineage, pcBlock, shortGames,
 } from "@/ai/blocks";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
@@ -17,7 +17,7 @@ type Series = { color: string; points: Pt[]; dashed?: boolean };
  */
 export default function BlocksScreen({ onExit, onWatch }: { onExit: () => void; onWatch: (m: Mode, b: [string, string]) => void }) {
   const [view, setView] = React.useState<"each" | "cumulative">("each");
-  const [sel, setSel] = React.useState<string>(LATEST);
+  const [sel, setSel] = React.useState<string>(BEST);
   const [, bump] = React.useState(0);
   const ids = [...PC_BLOCKS.map((b) => b.id), APP];
 
@@ -176,7 +176,7 @@ function AppBlock({ onWatch, refresh }: { onWatch: (m: Mode, bl: [string, string
         <Btn label={`LEARNING: ${brain.learningEnabled ? "ON" : "OFF"} (TAP)`} onPress={() => { brain.setLearning(!brain.learningEnabled); refresh(); }} />
         <Btn label={`WATCH vs ${(base?.label ?? "base").toUpperCase()}`} onPress={() => onWatch("ai-vs-ai", [brain.base, APP])} />
         <Btn label="PLAY AGAINST IT" onPress={() => onWatch("you-vs-ai", [APP, APP])} />
-        <Btn label={`RESET (START FROM ${blockLabel(LATEST).toUpperCase()})`} onPress={() => { brain.reset(LATEST); refresh(); }} />
+        <Btn label={`RESET (START FROM ${blockLabel(BEST).toUpperCase()})`} onPress={() => { brain.reset(BEST); refresh(); }} />
       </View>
     </View>
   );
