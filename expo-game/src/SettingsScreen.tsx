@@ -6,13 +6,14 @@ import { download, downloadUrl } from "@/download";
 import { Match, clearMatches, loadMatches, matchesCsv } from "@/matchLog";
 import { figures, realGame, summary } from "@/reportData";
 import { brain } from "@/ai/brain";
+import BlockAnalysis from "@/BlockAnalysis";
 
 /**
  * Settings = the data screen for the report:
  *   - experiment results (ablation table, baselines, figures) with CSV / JSON / PNG downloads
  *   - the log of every YOU vs AI / AI vs AI round played in this app, with CSV download
  */
-export default function SettingsScreen({ onExit }: { onExit: () => void }) {
+export default function SettingsScreen({ onExit, onWatch, onTour }: { onExit: () => void; onWatch: (m: "you-vs-ai" | "ai-vs-ai", b: [string, string]) => void; onTour: (ids: string[]) => void }) {
   const [matches, setMatches] = React.useState<Match[]>(loadMatches);
   const [fig, setFig] = React.useState(0);
   const [, bump] = React.useState(0);
@@ -42,7 +43,9 @@ export default function SettingsScreen({ onExit }: { onExit: () => void }) {
         <View style={{ width: 90 }} />
       </View>
       <ScrollView contentContainerStyle={s.body}>
-        <Text style={s.h2}>EXPERIMENT RESULTS</Text>
+        <BlockAnalysis onWatch={onWatch} onTour={onTour} />
+
+        <Text style={[s.h2, { marginTop: 30 }]}>EXPERIMENT RESULTS</Text>
         {!hasResults ? (
           <Text style={s.p}>No results bundled yet. Run run_experiments.py and make_report.py, then rebuild.</Text>
         ) : (

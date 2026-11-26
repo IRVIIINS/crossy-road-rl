@@ -31,7 +31,7 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 * `python export_weights.py models/expo_best.pt expo-game/src/ai/weights.json` – export the network for the game.
 * `expo-game/src/ai/` – observation builder + network + autopilot. Run it: `cd expo-game && npm install && npx expo start --web`, then pick **YOU vs AI** or **AI vs AI** on the menu (or open `?mode=you-vs-ai` / `?mode=ai-vs-ai`). See `expo-game/AI_AUTOPILOT.md`.
 
-`models/expo_best.pt` scores about 24 rows on average in the simulator (random play: about 1.4; best run 104). Tested in the real game: about 15.6 rows (see `REPORT_GUIDE.md`). The final app's default player is PC training round 5 (about 26 rows in the real game); every round is selectable under TRAINING BLOCKS.
+`models/expo_best.pt` scores about 24 rows on average in the simulator (random play: about 1.4; best run 104). Tested in the real game: about 15.6 rows (see `REPORT_GUIDE.md`). The final app's default player is PC training round 5 (about 23 rows on random levels in the real game); every round, the original player and an untrained network are selectable, and Settings (key 0) has the full block analysis, a worst-to-best tour and the block 4 overfitting note.
 
 ## Versions and Mac apps (download from Releases, no terminal build)
 

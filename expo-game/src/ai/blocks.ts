@@ -33,18 +33,26 @@ export type Block = {
 };
 
 export const APP = "app";
+/** a network with random starting weights that has never trained (the "before" picture; ai/untrained.json, seed 0) */
+export const UNTRAINED = "untrained";
+export const UNTRAINED_COLOR = "#ff5252";
 export const PC_BLOCKS: Block[] = (manifest as any).stages;
 export const LATEST = PC_BLOCKS[PC_BLOCKS.length - 1].id;
 export const COLORS = ["#b0b0b0", "#4fc3f7", "#f8e84d", "#8bf58b", "#ff8a65", "#ce93d8", "#80cbc4", "#fff59d"];
 export const APP_COLOR = "#ff6fb5";
 
 export const blockIndex = (id: string) => PC_BLOCKS.findIndex((b) => b.id === id);
-export const blockColor = (id: string) => (id === APP ? APP_COLOR : COLORS[Math.max(0, blockIndex(id)) % COLORS.length]);
+export const blockColor = (id: string) =>
+  id === APP ? APP_COLOR : id === UNTRAINED ? UNTRAINED_COLOR : COLORS[Math.max(0, blockIndex(id)) % COLORS.length];
 export const pcBlock = (id: string) => PC_BLOCKS.find((b) => b.id === id);
-export const blockWeights = (id: string) => STAGE_WEIGHTS[id];
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+export const blockWeights = (id: string) => (id === UNTRAINED ? require("./untrained.json") : STAGE_WEIGHTS[id]);
+/** is this id a player the app can run (an untrained net, a PC block, or the in-app learner)? */
+export const isPlayer = (id: string | null | undefined): id is string => !!id && (id === APP || id === UNTRAINED || !!pcBlock(id));
 
 export function blockLabel(id: string) {
   if (id === APP) return "In-app learned";
+  if (id === UNTRAINED) return "Untrained";
   return pcBlock(id)?.label ?? id;
 }
 

@@ -1,12 +1,330 @@
 {
-  "note": "Real Expo Crossy Road engine, headless Electron harness (tests/real_game_eval), learning off, AI vs AI, 30 games per block per sample. Rows beyond the start row.",
-  "previous_shipped_player": {"original_levels": 15.6, "maker_levels": 5.4, "games": 80},
-  "blocks": {
-    "round1": {"original": {"mean": 25.97, "std": 26.5, "median": 16, "max": 100, "games": 30}, "maker": {"mean": 11.43, "std": 13.71, "median": 6, "max": 53, "games": 30}},
-    "round2": {"original": {"mean": 28.93, "std": 26.83, "median": 26, "max": 116, "games": 30}, "maker": {"mean": 15.5, "std": 15.9, "median": 12, "max": 53, "games": 30}},
-    "round3": {"original": {"mean": 25.0, "std": 26.81, "median": 18, "max": 125, "games": 30}, "maker": {"mean": 11.87, "std": 16.12, "median": 7, "max": 73, "games": 30}},
-    "round4": {"original": {"mean": 33.13, "std": 45.16, "median": 15, "max": 217, "games": 30}, "maker": {"mean": 17.4, "std": 17.28, "median": 13, "max": 58, "games": 30}},
-    "round5": {"original": [{"mean": 23.5, "std": 21.94, "median": 18, "max": 102, "games": 30}, {"mean": 27.6, "std": 27.17, "median": 20, "max": 97, "games": 30}],
-              "maker": [{"mean": 15.57, "std": 18.85, "median": 9, "max": 63, "games": 30}, {"mean": 13.53, "std": 10.96, "median": 13, "max": 40, "games": 30}]}
+ "note": "Real Expo Crossy Road engine, headless Electron harness (tests/real_game_eval), learning off, AI vs AI. Rows beyond the start row. One sample = one run of real_eval.js (up to 80 games per block).",
+ "previous_shipped_player": {
+  "original": 15.6,
+  "maker": 5.4,
+  "games": 80
+ },
+ "samples": [
+  {
+   "block": "round2",
+   "levels": "original",
+   "source": "blkB_lm0.out",
+   "games": 30,
+   "mean": 28.93,
+   "std": 26.83,
+   "median": 26,
+   "max": 116
+  },
+  {
+   "block": "round3",
+   "levels": "original",
+   "source": "blkB_lm0.out",
+   "games": 30,
+   "mean": 25,
+   "std": 26.81,
+   "median": 18,
+   "max": 125
+  },
+  {
+   "block": "round3",
+   "levels": "maker",
+   "source": "blkB_lm1.out",
+   "games": 30,
+   "mean": 11.87,
+   "std": 16.12,
+   "median": 7,
+   "max": 73
+  },
+  {
+   "block": "round2",
+   "levels": "maker",
+   "source": "blkB_lm1.out",
+   "games": 30,
+   "mean": 15.5,
+   "std": 15.9,
+   "median": 12,
+   "max": 53
+  },
+  {
+   "block": "round4",
+   "levels": "original",
+   "source": "blkC_lm0.out",
+   "games": 30,
+   "mean": 33.13,
+   "std": 45.16,
+   "median": 15,
+   "max": 217
+  },
+  {
+   "block": "round5",
+   "levels": "original",
+   "source": "blkC_lm0.out",
+   "games": 30,
+   "mean": 27.6,
+   "std": 27.17,
+   "median": 20,
+   "max": 97
+  },
+  {
+   "block": "round5",
+   "levels": "maker",
+   "source": "blkC_lm1.out",
+   "games": 30,
+   "mean": 13.53,
+   "std": 10.96,
+   "median": 13,
+   "max": 40
+  },
+  {
+   "block": "round4",
+   "levels": "maker",
+   "source": "blkC_lm1.out",
+   "games": 30,
+   "mean": 17.4,
+   "std": 17.28,
+   "median": 13,
+   "max": 58
+  },
+  {
+   "block": "round1",
+   "levels": "original",
+   "source": "blk_lm0.out",
+   "games": 30,
+   "mean": 25.97,
+   "std": 26.5,
+   "median": 16,
+   "max": 100
+  },
+  {
+   "block": "round5",
+   "levels": "original",
+   "source": "blk_lm0.out",
+   "games": 30,
+   "mean": 23.5,
+   "std": 21.94,
+   "median": 18,
+   "max": 102
+  },
+  {
+   "block": "round1",
+   "levels": "maker",
+   "source": "blk_lm1.out",
+   "games": 30,
+   "mean": 11.43,
+   "std": 13.71,
+   "median": 6,
+   "max": 53
+  },
+  {
+   "block": "round5",
+   "levels": "maker",
+   "source": "blk_lm1.out",
+   "games": 30,
+   "mean": 15.57,
+   "std": 18.85,
+   "median": 9,
+   "max": 63
+  },
+  {
+   "block": "round2",
+   "levels": "original",
+   "source": "more_r12_lm0.out",
+   "games": 30,
+   "mean": 24.03,
+   "std": 21.08,
+   "median": 28,
+   "max": 71
+  },
+  {
+   "block": "round1",
+   "levels": "original",
+   "source": "more_r12_lm0.out",
+   "games": 30,
+   "mean": 22.33,
+   "std": 21.78,
+   "median": 16,
+   "max": 89
+  },
+  {
+   "block": "round1",
+   "levels": "maker",
+   "source": "more_r12_lm1.out",
+   "games": 30,
+   "mean": 11.87,
+   "std": 16.35,
+   "median": 8,
+   "max": 79
+  },
+  {
+   "block": "round2",
+   "levels": "maker",
+   "source": "more_r12_lm1.out",
+   "games": 30,
+   "mean": 18.63,
+   "std": 19.08,
+   "median": 15,
+   "max": 83
+  },
+  {
+   "block": "round4",
+   "levels": "original",
+   "source": "more_r34_lm0.out",
+   "games": 30,
+   "mean": 24.37,
+   "std": 22.33,
+   "median": 22,
+   "max": 86
+  },
+  {
+   "block": "round3",
+   "levels": "original",
+   "source": "more_r34_lm0.out",
+   "games": 30,
+   "mean": 25.8,
+   "std": 23.76,
+   "median": 23,
+   "max": 86
+  },
+  {
+   "block": "round3",
+   "levels": "maker",
+   "source": "more_r34_lm1.out",
+   "games": 30,
+   "mean": 15.47,
+   "std": 18.33,
+   "median": 11,
+   "max": 83
+  },
+  {
+   "block": "round4",
+   "levels": "maker",
+   "source": "more_r34_lm1.out",
+   "games": 30,
+   "mean": 13.47,
+   "std": 16.15,
+   "median": 7,
+   "max": 61
+  },
+  {
+   "block": "round4",
+   "levels": "original",
+   "source": "more_r45_lm0.out",
+   "games": 30,
+   "mean": 26.37,
+   "std": 22.2,
+   "median": 25,
+   "max": 70
+  },
+  {
+   "block": "round5",
+   "levels": "original",
+   "source": "more_r45_lm0.out",
+   "games": 30,
+   "mean": 25.97,
+   "std": 22.48,
+   "median": 22,
+   "max": 70
+  },
+  {
+   "block": "round5",
+   "levels": "maker",
+   "source": "more_r45_lm1.out",
+   "games": 30,
+   "mean": 15.63,
+   "std": 15.9,
+   "median": 11,
+   "max": 63
+  },
+  {
+   "block": "round4",
+   "levels": "maker",
+   "source": "more_r45_lm1.out",
+   "games": 30,
+   "mean": 13,
+   "std": 16.65,
+   "median": 9,
+   "max": 63
+  },
+  {
+   "block": "round5",
+   "levels": "original",
+   "source": "more_r51_lm0.out",
+   "games": 30,
+   "mean": 16.9,
+   "std": 19.72,
+   "median": 11,
+   "max": 77
+  },
+  {
+   "block": "round1",
+   "levels": "original",
+   "source": "more_r51_lm0.out",
+   "games": 30,
+   "mean": 17.43,
+   "std": 14.16,
+   "median": 15,
+   "max": 54
+  },
+  {
+   "block": "round1",
+   "levels": "maker",
+   "source": "more_r51_lm1.out",
+   "games": 30,
+   "mean": 17.77,
+   "std": 18.23,
+   "median": 13,
+   "max": 63
+  },
+  {
+   "block": "round5",
+   "levels": "maker",
+   "source": "more_r51_lm1.out",
+   "games": 30,
+   "mean": 20.33,
+   "std": 16.94,
+   "median": 17,
+   "max": 56
+  },
+  {
+   "block": "untrained",
+   "levels": "original",
+   "source": "more_untrained_lm0.out",
+   "games": 80,
+   "mean": 0,
+   "std": 0,
+   "median": 0,
+   "max": 0
+  },
+  {
+   "block": "untrained",
+   "levels": "maker",
+   "source": "more_untrained_lm1.out",
+   "games": 80,
+   "mean": 0,
+   "std": 0,
+   "median": 0,
+   "max": 0
+  },
+  {
+   "block": "original",
+   "levels": "original",
+   "source": "real_game_eval.json",
+   "games": 80,
+   "mean": 15.59,
+   "std": 13.89,
+   "median": 10,
+   "max": 74
+  },
+  {
+   "block": "original",
+   "levels": "maker",
+   "source": "real_game_eval.json",
+   "games": 80,
+   "mean": 5.44,
+   "std": 5.69,
+   "median": 3,
+   "max": 23
   }
+ ]
 }

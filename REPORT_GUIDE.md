@@ -100,21 +100,26 @@ versus 15.6 with trains, i.e. no improvement, so adding rails to the simulator a
 say so. Report both numbers and call the simulator the experimental environment. Closing the gap would need training in the real engine
 (`tests/real_game_eval/` runs it about 50x faster than real time, but that is still about 0.3 games/s per core).
 
-### Real game, PC training rounds 1-5 (final app)
+### Real game, every block (final app; Settings key 0 shows all of this)
 
-Same harness, learning off, 30 games per block per sample (`results/real_game_blocks.json`). The old shipped player scored 15.6 / 5.4.
+Same headless harness, learning off, `results/real_game_blocks.json` (pooled over several runs of `tests/real_game_eval`, collected with `collect_blocks.py`).
+Mean ± standard error in rows crossed; score = mean of the two level kinds; p = Welch t-test against the best player (larger p of the two level kinds).
 
-| Block | original levels (rows) | level-maker levels (rows) |
-|---|---|---|
-| round 1 | 26.0 +- 26.5 | 11.4 +- 13.7 |
-| round 2 | 28.9 +- 26.8 | 15.5 +- 15.9 |
-| round 3 | 25.0 +- 26.8 | 11.9 +- 16.1 |
-| round 4 | 33.1 +- 45.2 | 17.4 +- 17.3 |
-| round 5 (default, 60 games) | 25.6 +- 24.6 | 14.5 +- 15.5 |
+| Player | games (random / maker levels) | random levels | level-maker levels | score | p vs best |
+|---|---|---|---|---|---|
+| round 2 | 60/60 | 26.5 ± 3.1 | 17.1 ± 2.3 | 21.8 | - |
+| round 4 | 90/90 | 28.0 ± 3.3 | 14.6 ± 1.8 | 21.3 | 0.75 |
+| round 5 | 120/120 | 23.5 ± 2.1 | 16.3 ± 1.4 | 19.9 | 0.77 |
+| round 3 | 60/60 | 25.4 ± 3.2 | 13.7 ± 2.2 | 19.5 | 0.81 |
+| round 1 | 90/90 | 21.9 ± 2.3 | 13.7 ± 1.7 | 17.8 | 0.24 |
+| original (previous shipped player) | 80/80 | 15.6 ± 1.6 | 5.4 ± 0.6 | 10.5 | 0.00 |
+| untrained (random weights) | 80/80 | 0.0 ± 0.0 | 0.0 ± 0.0 | 0.0 | <0.001 |
 
-All five rounds beat the previous shipped player in the real game (roughly 1.5-2x on random levels, 2-3x on maker levels). Differences between rounds are
-NOT significant (standard deviations 15-45 rows with 30 games), even though the simulator ranks round 5 first (57.7 random / 32.9 maker). Round 5 stays the default
-because the simulator evidence for it is the strongest; do not claim it is the best in the real game. The simulator-to-real gap is now about 0.4-0.5x for round 5.
+* Worst: the untrained network (0 rows, it never moves and the "too slow" rule ends the round). Best by average: round 2.
+* All five PC rounds beat the original shipped player (p < 0.01) but are **not significantly different from each other** (sd 15-45 rows, 60-120 games each): the BEST label is the highest average, not a proven winner. This is a Monte Carlo estimation limit (standard error = sd/sqrt(N)).
+* Simulator tests (14 runs per round, 300 unseen levels): round 3 55.5, round 4 57.5, round 5 57.7 on random levels; round 3 vs 4 p = 0.17, round 4 vs 5 p = 0.84. Rounds 1 to 3 are real jumps (p < 0.001), after round 3 more PC hours did not help.
+* **Block 4 and overfitting** (`results/block_analysis.md`): its runs peaked after 38% of training on average (blocks 1-3: 68-84%), 9/14 runs peaked in the first half (block 3: 0/14), and the score fell 13.3 rows from peak to end. Training games always use fresh random levels, so this is over-training / policy drift (overfitting to its own experience) and a selection effect (best of ~260 evaluations on 100 fixed levels is optimistic by 7.2 rows), not memorised levels. Checkpoints are chosen on 200 held-out levels, so the shipped block 4 player is not worse than its neighbours; the cost was wasted compute. Say exactly that; do not claim block 4 is a worse final player.
+* **Monte Carlo**: the agent is Double DQN (temporal-difference, bootstraps from its own estimate), not a Monte Carlo return method; Monte Carlo sampling appears in the random levels, epsilon-greedy exploration and in every score being a sampled average. Full explanation in Settings.
 
 Online learning (opt-in in the app) lowers the score: 27.2 -> 9.7 on random levels, 7.7 -> 5.1 on maker levels after 150 rounds, 3 seeds
 (`results/online_learning.png`). Present it as a negative result and an instance of the instability of DQN, not as "the AI keeps improving".

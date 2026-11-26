@@ -6,7 +6,7 @@ import SettingsScreen from "@/SettingsScreen";
 import BlocksScreen from "@/BlocksScreen";
 import { addMatch } from "@/matchLog";
 import { brain } from "@/ai/brain";
-import { APP, LATEST, PC_BLOCKS, blockColor, blockLabel, pcBlock } from "@/ai/blocks";
+import { APP, LATEST, PC_BLOCKS, UNTRAINED, blockColor, blockLabel, isPlayer } from "@/ai/blocks";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
 type Screen = Mode | "settings" | "blocks";
@@ -31,7 +31,7 @@ function initialMode(): Screen | null {
 
 /** default brains: ?left=<block>&right=<block>, else the in-app learner while learning is ON, else the two newest blocks */
 function initialBlocks(): Blocks {
-  const ok = (b: string | null) => (b === APP || (b && pcBlock(b)) ? b : null);
+  const ok = (b: string | null) => (isPlayer(b) ? b : null);
   let left: string | null = null, right: string | null = null;
   try {
     const q = new URLSearchParams(window.location.search);
@@ -45,11 +45,13 @@ function initialBlocks(): Blocks {
 export default function Root() {
   const [mode, setMode] = React.useState<Screen | null>(initialMode);
   const [blocks, setBlocks] = React.useState<Blocks>(initialBlocks);
-  const watch = (m: Mode, b: Blocks) => { setBlocks(b); setMode(m); };
+  const [tour, setTour] = React.useState<string[] | null>(null);
+  const watch = (m: Mode, b: Blocks) => { setTour(null); setBlocks(b); setMode(m); };
+  const startTour = (ids: string[]) => { setTour(ids); setBlocks([ids[0], ids[0]]); setMode("ai-vs-ai"); };
   if (!mode) return <Menu onPick={setMode} />;
-  if (mode === "settings") return <SettingsScreen onExit={() => setMode(null)} />;
+  if (mode === "settings") return <SettingsScreen onExit={() => setMode(null)} onWatch={watch} onTour={startTour} />;
   if (mode === "blocks") return <BlocksScreen onExit={() => setMode(null)} onWatch={watch} />;
-  return <Arena key={mode + blocks.join()} mode={mode} initial={blocks} onExit={() => setMode(null)} />;
+  return <Arena key={mode + blocks.join() + (tour ? "tour" : "")} mode={mode} initial={blocks} tour={tour} onExit={() => setMode(null)} />;
 }
 
 function Button({ label, hint, onPress }) {
@@ -82,8 +84,9 @@ function Menu({ onPick }: { onPick: (m: Screen) => void }) {
   );
 }
 
-function Arena({ mode, initial, onExit }: { mode: Mode; initial: Blocks; onExit: () => void }) {
+function Arena({ mode, initial, tour, onExit }: { mode: Mode; initial: Blocks; tour?: string[] | null; onExit: () => void }) {
   const [round, setRound] = React.useState(0);
+  const [tourIdx, setTourIdx] = React.useState(0);
   const [blocks, setBlocks] = React.useState<Blocks>(initial);
   const newSeed = () => (Math.random() * 2 ** 31) | 0;
   // Same road on both boards whenever that is a fair race: YOU vs AI, or two DIFFERENT training blocks.
@@ -116,14 +119,30 @@ function Arena({ mode, initial, onExit }: { mode: Mode; initial: Blocks; onExit:
   const aiBlocks = mode === "ai-vs-ai" ? blocks : [blocks[1]];
   const usesApp = aiBlocks.includes(APP);
 
+  // TOUR: every player runs two games on two different roads, then the next one starts by itself
+  const tourNext = tour && tourIdx + 1 < tour.length ? tour[tourIdx + 1] : null;
+  const advance = React.useCallback(() => {
+    if (!tour) return;
+    const i = tourIdx + 1 < tour.length ? tourIdx + 1 : 0;
+    const nb: Blocks = [tour[i], tour[i]];
+    setTourIdx(i); setBlocks(nb); restart(nb);
+  }, [tour, tourIdx, restart]);
+  React.useEffect(() => {
+    if (!tour || !bothDone) return;
+    const t = setTimeout(advance, 5000);
+    return () => clearTimeout(t);
+  }, [tour, bothDone, advance]);
+
+
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Escape") onExit();
-      if (e.code === "KeyR" || (bothDone && e.code === "Enter")) restart();
+      if (tour && bothDone && e.code === "Enter") advance();
+      else if (e.code === "KeyR" || (bothDone && e.code === "Enter")) restart();
     };
     window.addEventListener("keyup", onKey);
     return () => window.removeEventListener("keyup", onKey);
-  }, [bothDone, restart, onExit]);
+  }, [bothDone, restart, onExit, tour, advance]);
 
   const names =
     mode === "you-vs-ai" ? ["YOU", "AI"]
@@ -194,7 +213,12 @@ function Arena({ mode, initial, onExit }: { mode: Mode; initial: Blocks; onExit:
           </>
         )}
       </View>
-      {size && !bothDone && (
+      {tour && (
+        <View pointerEvents="none" style={styles.tourBar}>
+          <Text style={[styles.tourText, outline(2)]}>TOUR {tourIdx + 1}/{tour.length} · {blockLabel(tour[tourIdx]).toUpperCase()}</Text>
+        </View>
+      )}
+      {size && !bothDone && !tour && (
         <View pointerEvents="box-none" style={styles.pickers}>
           {([0, 1] as const).map((side) => (
             <View key={side} style={{ width: size.w, alignItems: "center" }}>
@@ -222,7 +246,14 @@ function Arena({ mode, initial, onExit }: { mode: Mode; initial: Blocks; onExit:
           ) : (
             <>
               {!!learned && <Text style={[styles.learned, outline(2)]}>{learned}</Text>}
-              <Button label="PLAY AGAIN" hint="Enter" onPress={() => restart()} />
+              {tour ? (
+                <>
+                  <Text style={[styles.learned, outline(2)]}>{tourNext ? `NEXT IN 5 s: ${blockLabel(tourNext).toUpperCase()}` : "LAST PLAYER · RESTARTING THE TOUR IN 5 s"}</Text>
+                  <Button label="NEXT NOW" hint="Enter" onPress={advance} />
+                </>
+              ) : (
+                <Button label="PLAY AGAIN" hint="Enter" onPress={() => restart()} />
+              )}
             </>
           )}
         </View>
@@ -233,7 +264,7 @@ function Arena({ mode, initial, onExit }: { mode: Mode; initial: Blocks; onExit:
 
 /** chips to choose which training block drives an AI pane */
 function BlockPicker({ value, onPick }: { value: string; onPick: (id: string) => void }) {
-  const ids = [...PC_BLOCKS.map((b) => b.id), ...(brain.learningEnabled || brain.version > 0 ? [APP] : [])];
+  const ids = [UNTRAINED, ...PC_BLOCKS.map((b) => b.id), ...(brain.learningEnabled || brain.version > 0 ? [APP] : [])];
   return (
     <View style={styles.picker}>
       <Text style={styles.pickerHead}>BRAIN</Text>
@@ -282,6 +313,8 @@ const styles = StyleSheet.create({
     position: "absolute", bottom: 10, left: 0, right: 0,
     flexDirection: "row", justifyContent: "center", gap: 10,
   },
+  tourBar: { position: "absolute", top: 10, left: 0, right: 0, alignItems: "center" },
+  tourText: { fontFamily: "retro", color: "#fff", fontSize: 22 },
   pickers: { position: "absolute", bottom: 52, left: 0, right: 0, flexDirection: "row", justifyContent: "space-between" },
   picker: {
     flexDirection: "row", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 6,

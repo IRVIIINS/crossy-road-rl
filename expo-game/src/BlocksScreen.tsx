@@ -8,7 +8,7 @@ import {
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
 type Pt = [number, number];
-type Series = { color: string; points: Pt[]; dashed?: boolean };
+export type Series = { color: string; points: Pt[]; dashed?: boolean };
 
 /**
  * TRAINING BLOCKS: every trained player, one "block" per training round on the PC plus the in-app learner.
@@ -255,7 +255,7 @@ function Cumulative() {
 }
 
 // ------------------------------------------------------------------ small drawing helpers (plain Views, no chart library)
-function LineChart({ series, markers = [], height = 220 }: { series: Series[]; markers?: { x: number; label: string; color: string }[]; height?: number }) {
+export function LineChart({ series, markers = [], height = 220, xFormat }: { series: Series[]; markers?: { x: number; label: string; color: string }[]; height?: number; xFormat?: (x: number) => string }) {
   const [w, setW] = React.useState(0);
   const all = series.flatMap((x) => x.points);
   const xMin = Math.min(...all.map((p) => p[0]), ...markers.map((m) => m.x));
@@ -292,15 +292,15 @@ function LineChart({ series, markers = [], height = 220 }: { series: Series[]; m
             </React.Fragment>
           ))}
           {series.map((sr, si) => sr.points.slice(1).map((p, i) => seg(sr.points[i], p, sr.color, sr.dashed, `${si}-${i}`)))}
-          <Text style={[s.axis, { left: pad, bottom: 2 }]}>{shortGames(xMin)}</Text>
-          <Text style={[s.axis, { right: 8, bottom: 2 }]}>{shortGames(xMax)} games</Text>
+          <Text style={[s.axis, { left: pad, bottom: 2 }]}>{xFormat ? xFormat(xMin) : shortGames(xMin)}</Text>
+          <Text style={[s.axis, { right: 8, bottom: 2 }]}>{xFormat ? xFormat(xMax) : `${shortGames(xMax)} games`}</Text>
         </>
       )}
     </View>
   );
 }
 
-function Stacked({ parts }: { parts: { id: string; v: number }[] }) {
+export function Stacked({ parts }: { parts: { id: string; v: number }[] }) {
   const total = parts.reduce((a, p) => a + p.v, 0) || 1;
   return (
     <View>
@@ -320,7 +320,7 @@ function Stacked({ parts }: { parts: { id: string; v: number }[] }) {
   );
 }
 
-function Bar({ label, value, max, color, delta = null, faded }: { label: string; value: number; max: number; color: string; delta?: number | null; faded?: boolean }) {
+export function Bar({ label, value, max, color, delta = null, faded }: { label: string; value: number; max: number; color: string; delta?: number | null; faded?: boolean }) {
   return (
     <View style={s.barRow}>
       <Text style={s.barLabel}>{label}</Text>
@@ -335,7 +335,7 @@ function Bar({ label, value, max, color, delta = null, faded }: { label: string;
   );
 }
 
-function Stats({ items }: { items: [string, string][] }) {
+export function Stats({ items }: { items: [string, string][] }) {
   return (
     <View style={s.stats}>
       {items.map(([k, v]) => (
@@ -354,7 +354,7 @@ const Btn = ({ label, onPress }: { label: string; onPress: () => void }) => (
   </Pressable>
 );
 
-function Table({ head, rows, flex }: { head: string[]; rows: string[][]; flex: number[] }) {
+export function Table({ head, rows, flex }: { head: string[]; rows: string[][]; flex: number[] }) {
   return (
     <View style={s.table}>
       <View style={[s.tr, { backgroundColor: "#222" }]}>

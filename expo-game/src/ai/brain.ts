@@ -10,7 +10,7 @@
  *
  * Pure TypeScript (no React Native imports) so it can be tested in Node against PyTorch.
  */
-import { APP, LATEST, blockWeights, pcBlock } from "./blocks";
+import { APP, LATEST, UNTRAINED, blockWeights, pcBlock } from "./blocks";
 
 type Net = { dims: number[]; W: Float32Array[]; B: Float32Array[] };
 export type Transition = { s: Float32Array; a: number; r: number; s2: Float32Array; done: number };
@@ -180,7 +180,7 @@ export class Brain {
   private nets: Record<string, Net> = {};
   /** the fixed network of a PC training block (see blocks.ts) */
   netFor(id: string): Net {
-    if (!this.nets[id]) this.nets[id] = netFromJson(blockWeights(id) ?? blockWeights(LATEST));
+    if (!this.nets[id]) this.nets[id] = netFromJson((id === UNTRAINED || pcBlock(id) ? blockWeights(id) : null) ?? blockWeights(LATEST));
     return this.nets[id];
   }
   base = LATEST; // the PC block that in-app learning started from

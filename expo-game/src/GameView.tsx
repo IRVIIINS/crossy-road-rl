@@ -6,7 +6,8 @@ import GestureRecognizer, { swipeDirections } from "@/components/GestureView";
 import Engine from "@/GameEngine";
 import State from "@/state";
 import { brain } from "@/ai/brain";
-import { APP, blockColor, blockLabel, pcBlock, shortGames } from "@/ai/blocks";
+import { APP, UNTRAINED, blockColor, blockLabel, pcBlock, shortGames } from "@/ai/blocks";
+import { rankInfo } from "@/ai/ranking";
 
 /**
  * One playable board (a "pane"). Used twice for the split-screen modes:
@@ -123,14 +124,23 @@ const outline = (w: number) =>
 /** which training block is playing in this pane, and how much training it has had */
 function BlockTag({ block }: { block: string }) {
   const b = pcBlock(block);
+  const r = rankInfo(block);
   const detail =
     block === APP
       ? `${blockLabel(brain.base)} + ${brain.version} in-app rounds`
-      : `${shortGames(b?.games)} games${b?.test ? ` · test ${b.test.random.toFixed(1)}` : ""}`;
+      : block === UNTRAINED
+        ? "random starting weights, 0 games"
+        : `${shortGames(b?.games)} games${b?.test ? ` · test ${b.test.random.toFixed(1)}` : ""}`;
   return (
     <View style={[styles.tag, { borderColor: blockColor(block) }]}>
       <Text style={[styles.tagTitle, { color: blockColor(block) }]}>{blockLabel(block).toUpperCase()}</Text>
       <Text style={styles.tagDetail}>{detail}</Text>
+      {r && (
+        <Text style={[styles.tagDetail, { color: r.tag === "WORST" ? "#ff5252" : r.tag === "BEST" ? "#8bf58b" : "#ccc" }]}>
+          {r.tag ? `${r.tag} · ` : ""}RANK {r.of - r.rank + 1} OF {r.of} IN THE REAL GAME{r.tied && r.tag === "BEST" ? " (tied with several)" : ""}
+          {"\n"}REAL GAME ROWS: {r.original.toFixed(1)} RANDOM LEVELS · {r.maker.toFixed(1)} MAKER LEVELS
+        </Text>
+      )}
     </View>
   );
 }
