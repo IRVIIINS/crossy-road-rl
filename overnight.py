@@ -33,6 +33,7 @@ def run_jobs(a, deadline):
     jobs = []
     for s in range(a.seeds):
         for name, mix in CONFIGS.items():
+            if name not in a.configs.split(","): continue
             jobs.append((f"{name}_s{s}", name, mix, s))
     running, failures, last_status = {}, {}, 0
     margin = min(600, max(5, (deadline - time.time()) * 0.1))   # stop jobs a little before the deadline so they can save
@@ -59,7 +60,8 @@ def run_jobs(a, deadline):
                 d = os.path.join(a.out, jid)
                 cmd = [PY, "train_long.py", "--out", d, "--seed", str(s), "--maker-mix", str(mix), "--maker", a.maker,
                        "--episodes", str(a.episodes), "--episodes-per-iter", str(a.episodes_per_iter),
-                       "--eval-episodes", str(a.eval_episodes), "--deadline", str(min(deadline, time.time() + per_job_h * 3600))]
+                       "--eval-episodes", str(a.eval_episodes), "--deadline", str(min(deadline, time.time() + per_job_h * 3600)), "--device", a.device,
+                       "--lr", str(a.lr), "--lr-final", str(a.lr_final), "--eps-start", str(a.eps_start)] + (["--init", a.init] if a.init else [])
                 os.makedirs(d, exist_ok=True)
                 log = open(os.path.join(d, "log.txt"), "a")
                 running[jid] = (subprocess.Popen(cmd, stdout=log, stderr=subprocess.STDOUT, **lowprio()), log)
@@ -149,7 +151,9 @@ def cotrain(a, top):
     seeds = [20_000 + i for i in range(300)]
     makers = {"original level maker": LevelMaker.load(a.maker).net}
     if os.path.exists(os.path.join(out, "best.pt")): makers["level maker retrained against the new player"] = LevelMaker.load(os.path.join(out, "best.pt")).net
-    players = {"previous shipped player": "models/expo_best.pt", "new long-run player": "models/expo_best_long.pt"}
+    players = {"previous shipped player": "models/expo_best.pt"}
+    if a.init: players["starting player (before fine-tuning)"] = a.init
+    players["new long-run player"] = "models/expo_best_long.pt"
     lines = ["# Cross-evaluation (300 unseen seeds, rows crossed)\n", "| Player | random levels | " + " | ".join(makers) + " |", "|---|---|" + "---|" * len(makers)]
     for pn, pp in players.items():
         ag = DQNAgent(ExpoCrossySim(0).obs_size, 5, device="cpu"); ag.load(pp)
@@ -183,6 +187,12 @@ if __name__ == "__main__":
     p.add_argument("--maker", default="lm_runs/s0/best.pt")
     p.add_argument("--out", default="long_run")
     p.add_argument("--no-cotrain", action="store_true")
+    p.add_argument("--configs", default="random,mix50", help="comma list of configs to run: random, mix50")
+    p.add_argument("--init", default="", help="start every job from this player (.pt) instead of from scratch (fine-tuning)")
+    p.add_argument("--eps-start", type=float, default=1.0, help="starting exploration; use ~0.1 with --init")
+    p.add_argument("--lr", type=float, default=5e-4)
+    p.add_argument("--lr-final", type=float, default=1e-4)
+    p.add_argument("--device", default="cpu", help="cpu or cuda: where each worker trains its network (run bench_device.py to see which is faster)")
     a = p.parse_args()
     os.makedirs(a.out, exist_ok=True)
     started = os.path.join(a.out, "started_at.txt")

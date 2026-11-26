@@ -3,11 +3,14 @@ import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native
 
 import GameView from "@/GameView";
 import SettingsScreen from "@/SettingsScreen";
+import BlocksScreen from "@/BlocksScreen";
 import { addMatch } from "@/matchLog";
 import { brain } from "@/ai/brain";
+import { APP, LATEST, PC_BLOCKS, blockColor, blockLabel, pcBlock } from "@/ai/blocks";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
-type Screen = Mode | "settings";
+type Screen = Mode | "settings" | "blocks";
+type Blocks = [string, string]; // block driving the left / right pane (left is ignored in YOU vs AI)
 
 const outline = (w: number) =>
   Platform.select({
@@ -20,17 +23,33 @@ const outline = (w: number) =>
 function initialMode(): Screen | null {
   try {
     const m = new URLSearchParams(window.location.search).get("mode");
-    return m === "you-vs-ai" || m === "ai-vs-ai" || m === "settings" ? m : null;
+    return m === "you-vs-ai" || m === "ai-vs-ai" || m === "settings" || m === "blocks" ? m : null;
   } catch {
     return null;
   }
 }
 
+/** default brains: ?left=<block>&right=<block>, else the in-app learner while learning is ON, else the two newest blocks */
+function initialBlocks(): Blocks {
+  const ok = (b: string | null) => (b === APP || (b && pcBlock(b)) ? b : null);
+  let left: string | null = null, right: string | null = null;
+  try {
+    const q = new URLSearchParams(window.location.search);
+    left = ok(q.get("left")); right = ok(q.get("right"));
+  } catch {}
+  const prev = PC_BLOCKS.length > 1 ? PC_BLOCKS[PC_BLOCKS.length - 2].id : LATEST;
+  const d = brain.defaultBlock();
+  return [left ?? (d === APP ? APP : prev), right ?? d];
+}
+
 export default function Root() {
   const [mode, setMode] = React.useState<Screen | null>(initialMode);
+  const [blocks, setBlocks] = React.useState<Blocks>(initialBlocks);
+  const watch = (m: Mode, b: Blocks) => { setBlocks(b); setMode(m); };
   if (!mode) return <Menu onPick={setMode} />;
   if (mode === "settings") return <SettingsScreen onExit={() => setMode(null)} />;
-  return <Arena mode={mode} onExit={() => setMode(null)} />;
+  if (mode === "blocks") return <BlocksScreen onExit={() => setMode(null)} onWatch={watch} />;
+  return <Arena key={mode + blocks.join()} mode={mode} initial={blocks} onExit={() => setMode(null)} />;
 }
 
 function Button({ label, hint, onPress }) {
@@ -47,7 +66,8 @@ function Menu({ onPick }: { onPick: (m: Screen) => void }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Digit1" || e.code === "Numpad1") onPick("you-vs-ai");
       if (e.code === "Digit2" || e.code === "Numpad2") onPick("ai-vs-ai");
-      if (e.code === "Digit0" || e.code === "Numpad0") onPick("settings");
+      if (e.code === "Digit3" || e.code === "Numpad3") onPick("blocks");
+      if (e.code === "Digit0" || e.code === "Numpad0") onPick("settings"); // hidden: data screen for the report
     };
     window.addEventListener("keyup", onKey);
     return () => window.removeEventListener("keyup", onKey);
@@ -57,18 +77,21 @@ function Menu({ onPick }: { onPick: (m: Screen) => void }) {
       <Image source={require("../../assets/images/title.png")} style={styles.title} />
       <Button label="YOU vs AI" hint="1" onPress={() => onPick("you-vs-ai")} />
       <Button label="AI vs AI" hint="2" onPress={() => onPick("ai-vs-ai")} />
+      <Button label="TRAINING BLOCKS" hint="3 · every trained player, PC + in-app" onPress={() => onPick("blocks")} />
     </View>
   );
 }
 
-function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
+function Arena({ mode, initial, onExit }: { mode: Mode; initial: Blocks; onExit: () => void }) {
   const [round, setRound] = React.useState(0);
+  const [blocks, setBlocks] = React.useState<Blocks>(initial);
   const newSeed = () => (Math.random() * 2 ** 31) | 0;
-  // YOU vs AI: both boards use the same road (fair race). AI vs AI: the AIs are deterministic, so
-  // give each its own road, otherwise both boards would be identical.
+  // Same road on both boards whenever that is a fair race: YOU vs AI, or two DIFFERENT training blocks.
+  // Two copies of the same (deterministic) block get their own roads, otherwise both boards would be identical.
+  const sameRoad = (b: Blocks) => mode === "you-vs-ai" || b[0] !== b[1];
   const [seeds, setSeeds] = React.useState<number[]>(() => {
     const a = newSeed();
-    return [a, mode === "you-vs-ai" ? a : newSeed()];
+    return [a, sameRoad(initial) ? a : newSeed()];
   });
   const [scores, setScores] = React.useState<(number | null)[]>([null, null]);
   const [size, setSize] = React.useState<{ w: number; h: number } | null>(null);
@@ -78,13 +101,20 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
   const [learned, setLearned] = React.useState<string>("");
   const learning = learn != null;
 
-  const restart = React.useCallback(() => {
+  const restart = React.useCallback((b: Blocks = blocks) => {
     if (brain.busy) return;
     const a = newSeed();
-    setSeeds([a, mode === "you-vs-ai" ? a : newSeed()]);
+    setSeeds([a, sameRoad(b) ? a : newSeed()]);
     setScores([null, null]);
     setRound((r) => r + 1);
-  }, [mode]);
+  }, [mode, blocks]);
+  const pick = (side: 0 | 1, id: string) => {
+    const b: Blocks = side === 0 ? [id, blocks[1]] : [blocks[0], id];
+    setBlocks(b);
+    restart(b);
+  };
+  const aiBlocks = mode === "ai-vs-ai" ? blocks : [blocks[1]];
+  const usesApp = aiBlocks.includes(APP);
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -95,7 +125,10 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
     return () => window.removeEventListener("keyup", onKey);
   }, [bothDone, restart, onExit]);
 
-  const names = mode === "you-vs-ai" ? ["YOU", "AI"] : ["AI 1", "AI 2"];
+  const names =
+    mode === "you-vs-ai" ? ["YOU", "AI"]
+    : blocks[0] !== blocks[1] ? blocks.map((b) => blockLabel(b).toUpperCase())
+    : ["AI 1", "AI 2"];
   let result = "";
   if (bothDone) {
     const [a, b] = scores as number[];
@@ -111,14 +144,15 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
       left: names[0], right: names[1], leftScore: a, rightScore: b,
       winner: a === b ? "TIE" : a > b ? names[0] : names[1],
       leftSeed: seeds[0], rightSeed: seeds[1],
+      leftBlock: mode === "ai-vs-ai" ? blocks[0] : undefined, rightBlock: blocks[1],
     });
-    if (brain.learningEnabled) {
+    if (brain.learningEnabled && usesApp) {
       setLearn({ done: 0, total: 1 });
       brain.trainRound((done, total) => setLearn({ done, total })).then((entry) => {
         setLearn(null);
         setLearned(entry ? `AI LEARNED  v${entry.version}  (${entry.updates} updates, saved)` : "");
       });
-    } else setLearned("LEARNING OFF");
+    } else setLearned(brain.learningEnabled ? "PC BLOCKS DO NOT LEARN (PICK IN-APP LEARNED)" : "LEARNING OFF");
   }, [bothDone, round]);
 
   return (
@@ -138,6 +172,7 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
                 width={size.w}
                 height={size.h}
                 ai={mode === "ai-vs-ai"}
+                block={blocks[0]}
                 seed={seeds[0]}
                 character="chicken"
                 onDead={(s) => setScores((p) => [s, p[1]])}
@@ -150,6 +185,7 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
                 width={size.w}
                 height={size.h}
                 ai
+                block={blocks[1]}
                 seed={seeds[1]}
                 character="chicken"
                 onDead={(s) => setScores((p) => [p[0], s])}
@@ -158,11 +194,20 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
           </>
         )}
       </View>
+      {size && !bothDone && (
+        <View pointerEvents="box-none" style={styles.pickers}>
+          {([0, 1] as const).map((side) => (
+            <View key={side} style={{ width: size.w, alignItems: "center" }}>
+              {(mode === "ai-vs-ai" || side === 1) && <BlockPicker value={blocks[side]} onPick={(id) => pick(side, id)} />}
+            </View>
+          ))}
+        </View>
+      )}
       <View pointerEvents="box-none" style={styles.topBar}>
         <Pressable onPress={onExit} style={styles.small}>
           <Text style={styles.smallText}>MENU</Text>
         </Pressable>
-        <Pressable onPress={restart} style={styles.small}>
+        <Pressable onPress={() => restart()} style={styles.small}>
           <Text style={styles.smallText}>RESTART</Text>
         </Pressable>
       </View>
@@ -177,11 +222,30 @@ function Arena({ mode, onExit }: { mode: Mode; onExit: () => void }) {
           ) : (
             <>
               {!!learned && <Text style={[styles.learned, outline(2)]}>{learned}</Text>}
-              <Button label="PLAY AGAIN" hint="Enter" onPress={restart} />
+              <Button label="PLAY AGAIN" hint="Enter" onPress={() => restart()} />
             </>
           )}
         </View>
       )}
+    </View>
+  );
+}
+
+/** chips to choose which training block drives an AI pane */
+function BlockPicker({ value, onPick }: { value: string; onPick: (id: string) => void }) {
+  const ids = [...PC_BLOCKS.map((b) => b.id), ...(brain.learningEnabled || brain.version > 0 ? [APP] : [])];
+  return (
+    <View style={styles.picker}>
+      <Text style={styles.pickerHead}>BRAIN</Text>
+      {ids.map((id) => {
+        const on = id === value;
+        return (
+          <Pressable key={id} onPress={() => !on && onPick(id)}
+            style={[styles.chip, { borderColor: blockColor(id) }, on && { backgroundColor: blockColor(id) }]}>
+            <Text style={[styles.chipText, on && { color: "#000" }]}>{blockLabel(id).toUpperCase()}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -218,6 +282,14 @@ const styles = StyleSheet.create({
     position: "absolute", bottom: 10, left: 0, right: 0,
     flexDirection: "row", justifyContent: "center", gap: 10,
   },
+  pickers: { position: "absolute", bottom: 52, left: 0, right: 0, flexDirection: "row", justifyContent: "space-between" },
+  picker: {
+    flexDirection: "row", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 6,
+    backgroundColor: "rgba(0,0,0,0.6)", paddingVertical: 6, paddingHorizontal: 8, maxWidth: "96%",
+  },
+  pickerHead: { fontFamily: "retro", color: "#aaa", fontSize: 11, marginRight: 2 },
+  chip: { borderWidth: 2, paddingVertical: 3, paddingHorizontal: 7 },
+  chipText: { fontFamily: "retro", color: "#fff", fontSize: 11 },
   small: { backgroundColor: "rgba(0,0,0,0.7)", paddingVertical: 6, paddingHorizontal: 12 },
   smallText: { fontFamily: "retro", color: "#fff", fontSize: 14 },
   result: {

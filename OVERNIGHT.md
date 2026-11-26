@@ -24,6 +24,16 @@ python overnight.py --hours 0.1 --reserve-hours 0.04 --workers 2 --seeds 1 --epi
 ```
 It should end with `ALL DONE`. Delete the `smoke_test` folder afterwards.
 
+## Optional: use the GPU (RTX 4080)
+Most of the training time is the neural network update on every step (about 95% on one CPU core), not the game sim, so the GPU may help.
+Install the CUDA build of torch instead of the CPU one, then compare:
+```
+pip install torch --index-url https://download.pytorch.org/whl/cu128 --force-reinstall
+python bench_device.py
+```
+If the `cuda` line shows fewer ms/step than `cpu`, add `--device cuda` to the run command below. All workers share the one GPU, so you can
+also raise `--workers` (try your core count minus 2). The selection and final tests still run on the CPU.
+
 ## The real run (11:00 pm)
 ```
 cd crossy-road-rl
@@ -40,3 +50,25 @@ Leave the window open. It prints a status line every 10 minutes and writes `long
 ## Result
 `long_run\results_bundle.zip` (a few MB). Upload it to the chat; it contains `results.md`, `cross_eval.md`, every run's learning curve, and the new player
 (`expo_best_long.pt`). Nothing is changed in the app until the numbers have been checked.
+
+## Fine-tuning round (start from the best player, random levels only)
+Round 2 showed `mix50` does not help (35.9 vs 47.3 on random levels), so the next round trains `random` only and starts every job
+from the round-2 winner instead of from scratch, with little exploration and a lower learning rate:
+```
+Copy-Item models\expo_best_long.pt models\start_player.pt
+python overnight.py --hours 8 --workers 14 --seeds 14 --configs random --init models/start_player.pt --eps-start 0.1 --lr 1e-4 --lr-final 5e-5 --out long_run3
+```
+Copy the start player first: the final step overwrites `models\expo_best_long.pt`. The cross-evaluation then also lists the starting player,
+so you can see whether fine-tuning improved it. Also run `powercfg /change hibernate-timeout-ac 0` (round 2 lost ~2 h to the PC sleeping).
+
+## Round 3 on a schedule (run_round3.bat)
+`run_round3.bat` runs the fine-tuning round, then `add_stage.py` (block "PC round 3") and `git push`, logging to `round3_console.log`.
+Schedule it once from PowerShell in the repo folder (it needs the venv at `%USERPROFILE%\crossy-road-rl\venv`):
+```
+Register-ScheduledTask -TaskName CrossyRound3 -Action (New-ScheduledTaskAction -Execute "$PWD\run_round3.bat" -WorkingDirectory "$PWD") -Trigger (New-ScheduledTaskTrigger -Once -At ([datetime]"2026-11-25T02:00")) -Settings (New-ScheduledTaskSettingsSet -WakeToRun)
+```
+
+## More rounds back to back (run_rounds.ps1)
+`powershell -ExecutionPolicy Bypass -File .\run_rounds.ps1` trains 2 more rounds of 8 h (`-Count`, `-Hours` to change), each fine-tuned
+from the newest block, and adds + pushes each one as soon as it finishes. It first waits for the scheduled round 3 and pushes any
+finished round that was not pushed yet. Logs: `rounds_console.log` (steps) and `roundN_console.log` (training).

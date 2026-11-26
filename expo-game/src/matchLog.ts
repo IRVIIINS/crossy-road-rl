@@ -7,6 +7,7 @@ export type Match = {
   leftScore: number; rightScore: number;
   winner: string;
   leftSeed: number; rightSeed: number;
+  leftBlock?: string; rightBlock?: string; // training block that drove each AI pane (see src/ai/blocks.ts)
 };
 
 const KEY = "crossy.matches.v1";
@@ -34,6 +35,6 @@ export function clearMatches() {
 }
 
 export function matchesCsv(ms: Match[]) {
-  const cols = ["time", "mode", "left", "right", "leftScore", "rightScore", "winner", "leftSeed", "rightSeed"];
+  const cols = ["time", "mode", "left", "right", "leftScore", "rightScore", "winner", "leftSeed", "rightSeed", "leftBlock", "rightBlock"];
   return [cols.join(","), ...ms.map((m) => cols.map((c) => JSON.stringify((m as any)[c] ?? "")).join(","))].join("\n") + "\n";
 }

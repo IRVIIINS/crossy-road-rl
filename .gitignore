@@ -15,3 +15,9 @@ runs/*/final.pt
 expo-game/tests/brain_case.json
 long_run/
 smoke_test/
+long_run.log
+# training round output folders and logs (repo root only; training_rounds/<id>/ is committed)
+/round[0-9]*/
+/round*_console.log
+/round*_errors.log
+/rounds_console.log

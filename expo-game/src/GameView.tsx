@@ -5,6 +5,8 @@ import { Animated, Platform, StyleSheet, Text, View } from "react-native";
 import GestureRecognizer, { swipeDirections } from "@/components/GestureView";
 import Engine from "@/GameEngine";
 import State from "@/state";
+import { brain } from "@/ai/brain";
+import { APP, blockColor, blockLabel, pcBlock, shortGames } from "@/ai/blocks";
 
 /**
  * One playable board (a "pane"). Used twice for the split-screen modes:
@@ -18,6 +20,8 @@ type Props = {
   ai: boolean;
   seed: number;
   character: string;
+  /** AI panes: which trained player drives the chicken (a training block id, or "app"); default: brain.defaultBlock() */
+  block?: string;
   onDead?: (score: number) => void;
 };
 
@@ -33,6 +37,7 @@ export default class GameView extends Component<Props> {
     e.seed = this.props.seed;
     e.viewport = { width: this.props.width, height: this.props.height };
     e.autopilot.enabled = this.props.ai;
+    if (this.props.block) e.autopilot.block = this.props.block;
     try { ((window as any).__engines ||= []).push(e); } catch {}
     e.onUpdateScore = (position) => {
       if (this.state.score < position) this.setState({ score: position });
@@ -94,6 +99,7 @@ export default class GameView extends Component<Props> {
         )}
         <View pointerEvents="none" style={styles.hud}>
           <Text style={[styles.label, outline(3)]}>{ai ? "AI" : "YOU"}</Text>
+          {ai && <BlockTag block={this.engine.autopilot.block} />}
           <Text style={[styles.score, outline(4)]}>{this.state.score}</Text>
         </View>
         {dead && (
@@ -114,6 +120,21 @@ const outline = (w: number) =>
     default: {},
   }) as any;
 
+/** which training block is playing in this pane, and how much training it has had */
+function BlockTag({ block }: { block: string }) {
+  const b = pcBlock(block);
+  const detail =
+    block === APP
+      ? `${blockLabel(brain.base)} + ${brain.version} in-app rounds`
+      : `${shortGames(b?.games)} games${b?.test ? ` · test ${b.test.random.toFixed(1)}` : ""}`;
+  return (
+    <View style={[styles.tag, { borderColor: blockColor(block) }]}>
+      <Text style={[styles.tagTitle, { color: blockColor(block) }]}>{blockLabel(block).toUpperCase()}</Text>
+      <Text style={styles.tagDetail}>{detail}</Text>
+    </View>
+  );
+}
+
 const GestureView = ({ onStartGesture, onSwipe, disabled, ...props }: any) => (
   <GestureRecognizer
     disabled={disabled}
@@ -131,6 +152,9 @@ const styles = StyleSheet.create({
   hud: { position: "absolute", top: 12, left: 14, gap: 4 },
   label: { fontFamily: "retro", color: "#f8e84d", fontSize: 22 },
   score: { fontFamily: "retro", color: "white", fontSize: 52 },
+  tag: { backgroundColor: "rgba(0,0,0,0.6)", borderLeftWidth: 4, paddingVertical: 3, paddingHorizontal: 8, alignSelf: "flex-start" },
+  tagTitle: { fontFamily: "retro", fontSize: 13 },
+  tagDetail: { fontFamily: "retro", color: "#ddd", fontSize: 10, marginTop: 2 },
   deadOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.25)",
