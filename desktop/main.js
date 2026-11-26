@@ -35,7 +35,7 @@ async function createWindow() {
   ({ port } = await startServer(webRoot()));
   win = new BrowserWindow({
     width: 1100, height: 760, minWidth: 700, minHeight: 480,
-    title: "Crossy Road v4", backgroundColor: "#000000",
+    title: "Crossy Road", backgroundColor: "#000000",
     webPreferences: { contextIsolation: true, backgroundThrottling: false },
   });
   buildMenu();

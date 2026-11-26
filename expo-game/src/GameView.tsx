@@ -49,7 +49,7 @@ export default class GameView extends Component<Props> {
       if (this.dead) return; // the engine can report the same death on several frames
       this.dead = true;
       this.setState({ gameState: State.Game.gameOver });
-      try { ((window as any).__deaths ||= []).push({ score: this.state.score, seed: this.props.seed, ai: this.props.ai }); } catch {}
+      try { ((window as any).__deaths ||= []).push({ score: this.state.score, seed: this.props.seed, ai: this.props.ai, block: this.engine.autopilot.block }); } catch {}
       this.props.onDead?.(this.state.score);
     };
     e.setupGame(this.props.character);

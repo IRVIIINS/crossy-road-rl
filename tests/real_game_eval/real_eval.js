@@ -23,6 +23,9 @@ app.whenReady().then(async () => {
     if (r % 10 === 9) { const d=JSON.parse(await js(`JSON.stringify(window.__deaths)`)); require('fs').writeFileSync(`${require("os").tmpdir()}/partial_lm${lm}.json`, JSON.stringify(d.map(x=>x.score))); }
   }
   const d = JSON.parse(await js(`JSON.stringify(window.__deaths)`));
+  const byBlock = {}; d.forEach(x => (byBlock[x.block] = byBlock[x.block] || []).push(x.score));
+  const stat = a => { const m = a.reduce((p, q) => p + q, 0) / a.length; return { games: a.length, mean: +m.toFixed(2), std: +Math.sqrt(a.reduce((p, q) => p + (q - m) ** 2, 0) / a.length).toFixed(2), median: a.slice().sort((x, y) => x - y)[a.length >> 1], max: Math.max(...a) }; };
+  console.log('BYBLOCK ' + JSON.stringify(Object.fromEntries(Object.entries(byBlock).map(([k, v]) => [k, stat(v)]))));
   const sc = d.map(x => x.score);
   const mean = sc.reduce((a, b) => a + b, 0) / sc.length;
   const sd = Math.sqrt(sc.reduce((a, b) => a + (b - mean) ** 2, 0) / sc.length);

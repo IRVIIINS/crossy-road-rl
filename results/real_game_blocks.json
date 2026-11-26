@@ -1,0 +1,12 @@
+{
+  "note": "Real Expo Crossy Road engine, headless Electron harness (tests/real_game_eval), learning off, AI vs AI, 30 games per block per sample. Rows beyond the start row.",
+  "previous_shipped_player": {"original_levels": 15.6, "maker_levels": 5.4, "games": 80},
+  "blocks": {
+    "round1": {"original": {"mean": 25.97, "std": 26.5, "median": 16, "max": 100, "games": 30}, "maker": {"mean": 11.43, "std": 13.71, "median": 6, "max": 53, "games": 30}},
+    "round2": {"original": {"mean": 28.93, "std": 26.83, "median": 26, "max": 116, "games": 30}, "maker": {"mean": 15.5, "std": 15.9, "median": 12, "max": 53, "games": 30}},
+    "round3": {"original": {"mean": 25.0, "std": 26.81, "median": 18, "max": 125, "games": 30}, "maker": {"mean": 11.87, "std": 16.12, "median": 7, "max": 73, "games": 30}},
+    "round4": {"original": {"mean": 33.13, "std": 45.16, "median": 15, "max": 217, "games": 30}, "maker": {"mean": 17.4, "std": 17.28, "median": 13, "max": 58, "games": 30}},
+    "round5": {"original": [{"mean": 23.5, "std": 21.94, "median": 18, "max": 102, "games": 30}, {"mean": 27.6, "std": 27.17, "median": 20, "max": 97, "games": 30}],
+              "maker": [{"mean": 15.57, "std": 18.85, "median": 9, "max": 63, "games": 30}, {"mean": 13.53, "std": 10.96, "median": 13, "max": 40, "games": 30}]}
+  }
+}

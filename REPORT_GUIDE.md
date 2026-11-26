@@ -100,5 +100,21 @@ versus 15.6 with trains, i.e. no improvement, so adding rails to the simulator a
 say so. Report both numbers and call the simulator the experimental environment. Closing the gap would need training in the real engine
 (`tests/real_game_eval/` runs it about 50x faster than real time, but that is still about 0.3 games/s per core).
 
+### Real game, PC training rounds 1-5 (final app)
+
+Same harness, learning off, 30 games per block per sample (`results/real_game_blocks.json`). The old shipped player scored 15.6 / 5.4.
+
+| Block | original levels (rows) | level-maker levels (rows) |
+|---|---|---|
+| round 1 | 26.0 +- 26.5 | 11.4 +- 13.7 |
+| round 2 | 28.9 +- 26.8 | 15.5 +- 15.9 |
+| round 3 | 25.0 +- 26.8 | 11.9 +- 16.1 |
+| round 4 | 33.1 +- 45.2 | 17.4 +- 17.3 |
+| round 5 (default, 60 games) | 25.6 +- 24.6 | 14.5 +- 15.5 |
+
+All five rounds beat the previous shipped player in the real game (roughly 1.5-2x on random levels, 2-3x on maker levels). Differences between rounds are
+NOT significant (standard deviations 15-45 rows with 30 games), even though the simulator ranks round 5 first (57.7 random / 32.9 maker). Round 5 stays the default
+because the simulator evidence for it is the strongest; do not claim it is the best in the real game. The simulator-to-real gap is now about 0.4-0.5x for round 5.
+
 Online learning (opt-in in the app) lowers the score: 27.2 -> 9.7 on random levels, 7.7 -> 5.1 on maker levels after 150 rounds, 3 seeds
 (`results/online_learning.png`). Present it as a negative result and an instance of the instability of DQN, not as "the AI keeps improving".
