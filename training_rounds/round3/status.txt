@@ -1,0 +1,15 @@
+2026-11-25 08:20
+[random_s0] it  274 ep  54800 | train  28.5 | random  59.0 maker  26.4 | best  53.5@253 | 378 min
+[random_s1] it  278 ep  55600 | train  26.3 | random  55.1 maker  26.6 | best  44.9@216 | 379 min
+[random_s10] it  277 ep  55400 | train  25.8 | random  51.8 maker  20.9 | best  50.1@266 | 379 min
+[random_s11] it  271 ep  54200 | train  25.7 | random  66.5 maker  20.9 | best  52.1@254 | 379 min
+[random_s12] it  247 ep  49400 | train  30.5 | random  47.8 maker  14.7 | best  49.6@176 | 379 min
+[random_s13] it  271 ep  54200 | train  31.3 | random  51.5 maker  27.0 | best  49.0@243 | 379 min
+[random_s2] it  271 ep  54200 | train  24.9 | random  59.7 maker  35.9 | best  53.8@223 | 379 min
+[random_s3] it  271 ep  54200 | train  27.1 | random  49.7 maker  32.3 | best  51.4@136 | 380 min
+[random_s4] it  274 ep  54800 | train  29.7 | random  57.5 maker  23.2 | best  49.4@264 | 380 min
+[random_s5] it  277 ep  55400 | train  27.9 | random  59.7 maker  25.9 | best  49.2@255 | 380 min
+[random_s6] it  274 ep  54800 | train  25.8 | random  53.6 maker  28.8 | best  52.0@240 | 380 min
+[random_s7] it  277 ep  55400 | train  29.3 | random  54.2 maker  26.4 | best  47.1@215 | 380 min
+[random_s8] it  270 ep  54000 | train  30.0 | random  60.8 maker  21.4 | best  50.1@252 | 379 min
+[random_s9] it  277 ep  55400 | train  28.5 | random  67.3 maker  17.6 | best  48.8@213 | 379 min
