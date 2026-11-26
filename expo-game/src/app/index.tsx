@@ -79,7 +79,7 @@ function Menu({ onPick }: { onPick: (m: Screen) => void }) {
       <Image source={require("../../assets/images/title.png")} style={styles.title} />
       <Button label="YOU vs AI" hint="1" onPress={() => onPick("you-vs-ai")} />
       <Button label="AI vs AI" hint="2" onPress={() => onPick("ai-vs-ai")} />
-      <Button label="TRAINING BLOCKS" hint="3 · every trained player, PC + in-app" onPress={() => onPick("blocks")} />
+      {/* hidden: key 3 still opens the training blocks screen, key 0 the settings/data screen */}
     </View>
   );
 }
