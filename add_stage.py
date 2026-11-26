@@ -1,7 +1,7 @@
 """Add one training round ("block") to the repo and to the app.
 
-  python add_stage.py --bundle results_bundle_round1.zip --id round1 --label "PC round 1" --date 2026-11-23
-  python add_stage.py --bundle results_bundle_round2.zip --id round2 --label "PC round 2" --date 2026-11-24 --continues round1
+  python add_stage.py --bundle results_bundle_round1.zip --id round1 --label "Round 1" --date 2026-11-23
+  python add_stage.py --bundle results_bundle_round2.zip --id round2 --label "Round 2" --date 2026-11-24 --continues round1
 
 What it does
   1. unpacks the small files of the bundle (tables, every run's learning curve and logs) into training_rounds/<id>/

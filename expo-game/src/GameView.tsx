@@ -130,7 +130,7 @@ function BlockTag({ block }: { block: string }) {
       ? `${blockLabel(brain.base)} + ${brain.version} in-app rounds`
       : block === UNTRAINED
         ? "random starting weights, 0 games"
-        : `${shortGames(b?.games)} games${b?.test ? ` · test ${b.test.random.toFixed(1)}` : ""}`;
+        : `${shortGames(b?.games)} games trained${b?.test ? ` · simulator test ${b.test.random.toFixed(1)} rows` : ""}`;
   return (
     <View style={[styles.tag, { borderColor: blockColor(block) }]}>
       <Text style={[styles.tagTitle, { color: blockColor(block) }]}>{blockLabel(block).toUpperCase()}</Text>

@@ -35,12 +35,12 @@ function Newest-Round {
 
 function Publish([int]$n) {
     $id = "round$n"
-    Say "pushing PC round $n to GitHub"
+    Say "pushing Round $n to GitHub"
     Run git @("add", "-f", "training_rounds/$id", "models/expo_$id.pt", "expo-game/src/ai/stages") | Out-Null
-    Run git @("commit", "-m", "Add PC round $n as a training block") | Out-Null
+    Run git @("commit", "-m", "Add Round $n as a training block") | Out-Null
     Run git @("pull", "--rebase") | Out-Null
-    if ((Run git @("push")) -ne 0) { Say "push of PC round $n FAILED (see above); it stays committed locally and is retried next time" }
-    else { Say "PC round $n pushed" }
+    if ((Run git @("push")) -ne 0) { Say "push of Round $n FAILED (see above); it stays committed locally and is retried next time" }
+    else { Say "Round $n pushed" }
 }
 
 if (-not (Test-Path $py)) { Say "Python venv not found at $py"; exit 1 }
@@ -58,8 +58,8 @@ if ($task -and $task.State -eq "Running") {
 foreach ($n in 3..20) {
     $id = "round$n"
     if ((Test-Path "$id\results_bundle.zip") -and -not (Test-Path "models\expo_$id.pt")) {
-        Say "adding PC round $n as a block"
-        Run $py @("add_stage.py", "--bundle", "$id/results_bundle.zip", "--id", $id, "--label", "PC round $n",
+        Say "adding Round $n as a block"
+        Run $py @("add_stage.py", "--bundle", "$id/results_bundle.zip", "--id", $id, "--label", "Round $n",
                   "--date", (Get-Date -Format "yyyy-MM-dd"), "--starts-from", "round$($n - 1)") | Out-Null
     }
     if ((Test-Path "models\expo_$id.pt") -and (git status --porcelain -- "models/expo_$id.pt" "training_rounds/$id" "expo-game/src/ai/stages")) { Publish $n }
@@ -70,7 +70,7 @@ for ($k = 1; $k -le $Count; $k++) {
     $prev = Newest-Round
     $n = $prev + 1
     $id = "round$n"
-    Say "starting PC round $n ($Hours h, $Workers runs), fine-tuning PC round $prev"
+    Say "starting Round $n ($Hours h, $Workers runs), fine-tuning Round $prev"
     powercfg /change standby-timeout-ac 0
     powercfg /change hibernate-timeout-ac 0
     $argv = @("overnight.py", "--hours", "$Hours", "--workers", "$Workers", "--seeds", "$Workers", "--configs", "random",
@@ -78,14 +78,14 @@ for ($k = 1; $k -le $Count; $k++) {
     $p = Start-Process -FilePath $py -ArgumentList $argv -NoNewWindow -Wait -PassThru `
          -RedirectStandardOutput "${id}_console.log" -RedirectStandardError "${id}_errors.log"
     if (-not (Test-Path "$id\results_bundle.zip")) {
-        Say "PC round $n did not finish (exit code $($p.ExitCode)); see ${id}_console.log and ${id}_errors.log. Stopping."
+        Say "Round $n did not finish (exit code $($p.ExitCode)); see ${id}_console.log and ${id}_errors.log. Stopping."
         exit 1
     }
-    Say "adding PC round $n as a block"
-    $rc = Run $py @("add_stage.py", "--bundle", "$id/results_bundle.zip", "--id", $id, "--label", "PC round $n",
+    Say "adding Round $n as a block"
+    $rc = Run $py @("add_stage.py", "--bundle", "$id/results_bundle.zip", "--id", $id, "--label", "Round $n",
                     "--date", (Get-Date -Format "yyyy-MM-dd"), "--starts-from", "round$prev",
-                    "--summary", "Fine-tuned PC round $prev's best player for $Hours hours: $Workers runs on random levels.")
-    if ($rc -ne 0) { Say "add_stage.py failed for PC round $n. Stopping."; exit 1 }
+                    "--summary", "Fine-tuned round $prev's best player for $Hours hours: $Workers runs on random levels.")
+    if ($rc -ne 0) { Say "add_stage.py failed for Round $n. Stopping."; exit 1 }
     Publish $n
 }
 Say "ALL DONE"

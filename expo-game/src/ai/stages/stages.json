@@ -3,7 +3,7 @@
  "stages": [
   {
    "id": "original",
-   "label": "Original",
+   "label": "Original (first AI)",
    "where": "pc",
    "date": "2026-11 (before the long runs)",
    "summary": "First trained player (Double DQN + look-ahead, 5 seeds x 10,000 games, best seed shipped).",
@@ -31,7 +31,7 @@
   },
   {
    "id": "round1",
-   "label": "PC round 1",
+   "label": "Round 1",
    "where": "pc",
    "date": "2026-11-23",
    "summary": "First long run on the PC: 8 runs (random and mix50 levels, 4 seeds each), about 4.5 hours.",
@@ -462,7 +462,7 @@
   },
   {
    "id": "round2",
-   "label": "PC round 2",
+   "label": "Round 2",
    "where": "pc",
    "date": "2026-11-24",
    "summary": "Continued round 1's 8 runs and added 6 new ones (14 runs on 14 cores). Showed that mix50 does not help.",
@@ -885,7 +885,7 @@
   },
   {
    "id": "round3",
-   "label": "PC round 3",
+   "label": "Round 3",
    "where": "pc",
    "date": "2026-11-25",
    "summary": "Fine-tuned round 2's best player for 8 hours: 14 runs on random levels, low exploration and learning rate.",
@@ -1328,10 +1328,10 @@
   },
   {
    "id": "round4",
-   "label": "PC round 4",
+   "label": "Round 4",
    "where": "pc",
    "date": "2026-11-26",
-   "summary": "Fine-tuned PC round 3's best player for 8 hours: 14 runs on random levels.",
+   "summary": "Fine-tuned round 3's best player for 8 hours: 14 runs on random levels.",
    "games": 131600,
    "hours": 12.93,
    "updates": 8071385,
@@ -1821,10 +1821,10 @@
   },
   {
    "id": "round5",
-   "label": "PC round 5",
+   "label": "Round 5",
    "where": "pc",
    "date": "2026-11-26",
-   "summary": "Fine-tuned PC round 4's best player for 8 hours: 14 runs on random levels.",
+   "summary": "Fine-tuned round 4's best player for 8 hours: 14 runs on random levels.",
    "games": 179600,
    "hours": 18.73,
    "updates": 11381266,

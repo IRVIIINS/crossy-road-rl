@@ -66,7 +66,7 @@ function Timeline({ ids, sel, onSel }: { ids: string[]; sel: string | null; onSe
               <View style={[s.dot, { backgroundColor: blockColor(id) }]} />
               <Text style={s.tTitle}>{blockLabel(id).toUpperCase()}</Text>
               <Text style={s.tSub}>
-                {id === APP ? `${brain.version} rounds · ${brain.games} games` : `${shortGames(b!.games)} games${b!.test ? ` · ${b!.test.random.toFixed(1)}` : ""}`}
+                {id === APP ? `${brain.version} rounds · ${brain.games} games` : `${shortGames(b!.games)} games${b!.test ? ` · sim ${b!.test.random.toFixed(1)} rows` : ""}`}
               </Text>
               <Text style={[s.badge, { color: id === APP ? APP_COLOR : "#9ad" }]}>{id === APP ? "IN APP" : "ON PC"}</Text>
             </Pressable>

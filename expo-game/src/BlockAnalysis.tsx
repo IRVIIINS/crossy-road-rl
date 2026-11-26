@@ -6,11 +6,12 @@ import type { Series } from "@/BlocksScreen";
 import { PC_BLOCKS, UNTRAINED, blockColor, blockLabel, pcBlock, shortGames } from "@/ai/blocks";
 import { analysis, orderWorstToBest, rankInfo } from "@/ai/ranking";
 import { download } from "@/download";
+import { BlockStories, Glossary, ImprovementPlan } from "@/BlockStory";
 
 type Mode = "you-vs-ai" | "ai-vs-ai";
 
 /**
- * Settings -> block analysis: every trained player compared, watch-each-player buttons (worst -> best), the block 4 write-up and the
+ * Settings -> block analysis: every trained player compared, watch-each-player buttons (worst -> best), the round 4 write-up and the
  * Monte Carlo explanation. All numbers come from assets/report/block_analysis.json (python make_block_analysis.py).
  */
 export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, b: [string, string]) => void; onTour: (ids: string[]) => void }) {
@@ -72,7 +73,11 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         <Text style={[s.td, { color: "#888", padding: 6, fontSize: 11 }]}>columns: real-game rows on random levels · on level-maker levels</Text>
       </View>
 
+      <Text style={s.h2}>HOW TO READ EVERY NUMBER HERE</Text>
+      <Glossary />
+
       <Text style={s.h2}>REAL-GAME SCORE, EVERY PLAYER</Text>
+      <Text style={s.p}>Rows crossed in the real game, average of many games per player. Top bar of each pair = random levels, faded bar = level-maker levels.</Text>
       {order.map((id) => (
         <View key={id} style={{ marginBottom: 6 }}>
           <Bar label={blockLabel(id)} value={rg.blocks[id].original.mean} max={maxReal} color={blockColor(id)} />
@@ -80,8 +85,8 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         </View>
       ))}
       <Table
-        head={["Player", "Games", "Random levels (mean ± SE)", "Median", "Max", "Maker levels (mean ± SE)", "p vs best"]}
-        flex={[1.6, 0.7, 1.9, 0.8, 0.7, 1.9, 1.1]}
+        head={["Player", "Games (random / maker levels)", "Random levels: mean rows ± SE (sd)", "Median rows", "Best game", "Maker levels: mean rows ± SE (sd)", "p vs best player"]}
+        flex={[1.5, 1, 2.1, 0.8, 0.7, 2.1, 1]}
         rows={[...order].reverse().map((id) => {
           const o = rg.blocks[id].original, m = rg.blocks[id].maker;
           const pv = Math.max(o.p_vs_best ?? 0, m.p_vs_best ?? 0);
@@ -103,8 +108,8 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         "Chosen player" is the single run that was shipped as that block.
       </Text>
       <Table
-        head={["Block", "Runs", "Random levels", "Maker levels", "Chosen player (random / maker)", "Games (its line)", "Hours"]}
-        flex={[1.2, 0.6, 1.5, 1.5, 2, 1.1, 0.7]}
+        head={["Block", "Runs", "Random levels: rows, mean ± sd over runs", "Maker levels: rows, mean ± sd over runs", "Chosen (best) run: rows, random / maker", "Training games (its line)", "Training hours (its line)"]}
+        flex={[1.1, 0.6, 1.7, 1.7, 1.7, 1.1, 1.1]}
         rows={ids.map((id) => {
           const r = rounds[id], b = pcBlock(id)!;
           return [blockLabel(id), String(r.runs), `${r.test_random_mean.toFixed(1)} ± ${r.test_random_std.toFixed(1)}`, `${r.test_maker_mean.toFixed(1)} ± ${r.test_maker_std.toFixed(1)}`,
@@ -130,8 +135,8 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
 
       <Text style={s.h2}>TRAINING DIAGNOSTICS: WHEN DID EACH BLOCK PEAK?</Text>
       <Table
-        head={["Block", "Eval peak at (share of training)", "Runs that peaked in 1st half", "Peak → end of training", "2nd half − 1st half", "Peak vs held-out score"]}
-        flex={[1.1, 1.7, 1.7, 1.4, 1.4, 1.5]}
+        head={["Block", "Best test reached at (% of training)", "Runs that peaked in the 1st half", "Drop from peak to end (rows)", "Gain: 2nd half minus 1st half (rows)", "Peak above held-out score (rows)"]}
+        flex={[1, 1.6, 1.6, 1.4, 1.6, 1.5]}
         rows={ids.map((id) => {
           const r = rounds[id];
           return [blockLabel(id), `${Math.round(100 * r.peak_iteration_frac)}%`, `${r.runs_peaking_in_first_half}/${r.curve_runs}`, `-${r.decline_peak_to_end.toFixed(1)}`,
@@ -143,13 +148,17 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         "Peak vs held-out" = how much higher the best evaluation value is than the same checkpoint's score on 200 other levels (selection optimism).
       </Text>
 
-      <Text style={s.h2}>BLOCK 4: OVERFITTING, AND WHAT IT COST</Text>
+      <Text style={s.h2}>EVERY BLOCK: WHAT IT IS AND WHAT YIELDED ITS RESULT</Text>
+      <Text style={s.p}>One card per player, in training order. The numbers in the grey boxes say what they measure under each value.</Text>
+      <BlockStories />
+
+      <Text style={s.h2}>ROUND 4: OVERFITTING, AND WHAT IT COST</Text>
       <Text style={s.p}>
-        What the data shows. Block 4 (14 runs, each fine-tuned from block 3's winner for about 6 hours on random levels) peaked early and then got worse:
-        on average its evaluation score peaked after {Math.round(100 * rounds.round4.peak_iteration_frac)}% of the training (blocks 1–3: {Math.round(100 * Math.min(...["round1", "round2", "round3"].map((k) => rounds[k].peak_iteration_frac)))}–{Math.round(100 * Math.max(...["round1", "round2", "round3"].map((k) => rounds[k].peak_iteration_frac)))}%),
-        {" "}{rounds.round4.runs_peaking_in_first_half} of {rounds.round4.curve_runs} runs peaked in the first half (block 3: {rounds.round3.runs_peaking_in_first_half} of {rounds.round3.curve_runs}),
+        What the data shows. Round 4 (14 runs, each fine-tuned from round 3's winner for about 6 hours on random levels) peaked early and then got worse:
+        on average its evaluation score peaked after {Math.round(100 * rounds.round4.peak_iteration_frac)}% of the training (rounds 1 to 3: {Math.round(100 * Math.min(...["round1", "round2", "round3"].map((k) => rounds[k].peak_iteration_frac)))}–{Math.round(100 * Math.max(...["round1", "round2", "round3"].map((k) => rounds[k].peak_iteration_frac)))}%),
+        {" "}{rounds.round4.runs_peaking_in_first_half} of {rounds.round4.curve_runs} runs peaked in the first half (round 3: {rounds.round3.runs_peaking_in_first_half} of {rounds.round3.curve_runs}),
         the score fell {rounds.round4.decline_peak_to_end.toFixed(1)} rows from the peak to the end (the largest fall of any block), and the second half of training was no better than the first
-        ({rounds.round4.second_half_minus_first_half.toFixed(1)} rows, while block 3 still gained {rounds.round3.second_half_minus_first_half.toFixed(1)}). The extra training did not improve the player; it
+        ({rounds.round4.second_half_minus_first_half.toFixed(1)} rows, while round 3 still gained {rounds.round3.second_half_minus_first_half.toFixed(1)}). The extra training did not improve the player; it
         made the late checkpoints worse than the early ones.
       </Text>
       <Text style={s.p}>
@@ -157,15 +166,15 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         buffer full of near-identical behaviour, until its decisions were tuned to that narrow experience and generalised worse to the evaluation levels. Two caveats: (1) it cannot be
         memorising levels, because every training game used a fresh random level, so the better description is over-training / policy drift, a form of overfitting to
         its own experience; (2) the usual training-vs-test gap cannot be read from the logs because training games include exploration moves.
-        There is also overfitting on the selection side: the best of about 260 evaluations on the same 100 levels is optimistic by {rounds.round4.eval_peak_optimism.toFixed(1)} rows in block 4
-        (block 1: {rounds.round1.eval_peak_optimism.toFixed(1)}), so the shipped checkpoint is chosen on 200 other levels.
+        There is also overfitting on the selection side: the best of about 260 evaluations on the same 100 levels is optimistic by {rounds.round4.eval_peak_optimism.toFixed(1)} rows in round 4
+        (round 1: {rounds.round1.eval_peak_optimism.toFixed(1)}), so the shipped checkpoint is chosen on 200 other levels.
       </Text>
       <Text style={s.p}>
-        What it cost and what it did not. It wasted most of the block's six hours (the useful checkpoints were early) and gave no gain over block 3: the chosen players test at{" "}
-        {pcBlock("round3")?.test?.random.toFixed(1)} (block 3), {pcBlock("round4")?.test?.random.toFixed(1)} (block 4), {pcBlock("round5")?.test?.random.toFixed(1)} (block 5) on random levels. Because checkpoints are picked on held-out levels (early stopping), the shipped
-        block 4 player is NOT significantly worse than its neighbours: mean over runs {rounds.round4.test_random_mean.toFixed(1)} vs {rounds.round3.test_random_mean.toFixed(1)} (block 3, p = {p("round3-round4")?.p.toFixed(2)}) and
-        {" "}{rounds.round5.test_random_mean.toFixed(1)} (block 5, p = {p("round4-round5")?.p.toFixed(2)}), and in the real game it ranks {rankInfo("round4") ? `${rankInfo("round4")!.of - rankInfo("round4")!.rank + 1} of ${rankInfo("round4")!.of}` : "?"} on average but is statistically tied with the other trained blocks. So the overfitting is
-        visible in block 4's training curves and in the compute it wasted, not as a worse final player. Block 5 showed the same pattern, less strongly ({Math.round(100 * rounds.round5.peak_iteration_frac)}% peak point).
+        What it cost and what it did not. It wasted most of the block's six hours (the useful checkpoints were early) and gave no gain over round 3: the chosen players test at{" "}
+        {pcBlock("round3")?.test?.random.toFixed(1)} (round 3), {pcBlock("round4")?.test?.random.toFixed(1)} (round 4), {pcBlock("round5")?.test?.random.toFixed(1)} (round 5) on random levels. Because checkpoints are picked on held-out levels (early stopping), the shipped
+        round 4 player is NOT significantly worse than its neighbours: mean over runs {rounds.round4.test_random_mean.toFixed(1)} vs {rounds.round3.test_random_mean.toFixed(1)} (round 3, p = {p("round3-round4")?.p.toFixed(2)}) and
+        {" "}{rounds.round5.test_random_mean.toFixed(1)} (round 5, p = {p("round4-round5")?.p.toFixed(2)}), and in the real game it ranks {rankInfo("round4") ? `${rankInfo("round4")!.of - rankInfo("round4")!.rank + 1} of ${rankInfo("round4")!.of}` : "?"} on average but is statistically tied with the other trained blocks. So the overfitting is
+        visible in round 4's training curves and in the compute it wasted, not as a worse final player. Round 5 showed the same pattern, less strongly ({Math.round(100 * rounds.round5.peak_iteration_frac)}% peak point).
       </Text>
 
       <Text style={s.h2}>HOW THIS RELATES TO MONTE CARLO TRAINING</Text>
@@ -174,7 +183,7 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         +1 per new row, −0.02 per step, −1 on death, discounted by γ = 0.97) and use that sum as the target. It needs no model, is unbiased, but is noisy, because one
         unlucky car or log changes the whole sum. Our player does not do this. It is Double DQN, a temporal-difference method: the target is the next reward
         plus its own estimate of the next state (bootstrapping). That learns from every single move and can reuse old moves from a replay buffer, but its
-        targets are biased by the network's own errors, which is exactly what makes long DQN runs drift and overfit (see block 4). Monte Carlo targets would not
+        targets are biased by the network's own errors, which is exactly what makes long DQN runs drift and overfit (see round 4). Monte Carlo targets would not
         bootstrap, but they would need complete games and would have much higher variance (death scores range from 0 to over 200 rows).
       </Text>
       <Text style={s.p}>
@@ -185,6 +194,7 @@ export default function BlockAnalysis({ onWatch, onTour }: { onWatch: (m: Mode, 
         round 3 from 4 or 5; (4) the level maker's own randomness (15% random choices) makes each maker game different. More games shrink the error slowly (4x the games, half
         the error), which is the practical limit of evaluating a high-variance game by sampling.
       </Text>
+      <ImprovementPlan />
       <View style={s.rowWrap}>
         <Btn label="Block analysis (JSON)" onPress={() => download("block_analysis.json", JSON.stringify(analysis, null, 2), "application/json")} />
       </View>

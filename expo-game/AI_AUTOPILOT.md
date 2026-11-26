@@ -41,7 +41,7 @@ Every trained player is a **block**: one per training round on the PC, plus the 
 Add a training round (from the repo root, after `overnight.py` finished and wrote `results_bundle.zip`):
 
 ```bash
-python add_stage.py --bundle results_bundle_round1.zip --id round1 --label "PC round 1" --date 2026-11-23
+python add_stage.py --bundle results_bundle_round1.zip --id round1 --label "Round 1" --date 2026-11-23
 ```
 
 This writes `training_rounds/<id>/` (tables, every run's learning curve and log), `models/expo_<id>.pt`,
