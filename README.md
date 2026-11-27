@@ -41,13 +41,13 @@ the author says it is for educational purposes) with an **AI autopilot** added. 
 | **v2** | improved 2D pygame game (smooth art) + AI | `Crossy Road v2.app` |
 | **v3** | the real expo-crossy-road 3D game (3D graphics and gameplay) + the AI autopilot | `Crossy Road v3.app` |
 | **v4** | v3 with a simplified menu: only YOU vs AI and AI vs AI, Settings opens with key 0 | `Crossy Road v4.app` |
-| **final** | v4 + the 5 PC training rounds as selectable blocks (key 3), default player = round 5 | `Crossy Road Final.app` |
+| **final** | v4 + the 5 PC training rounds as selectable blocks (key 3), default player = round 5 | `COSC 4368 Final Project.app` |
 
 GitHub builds the apps (Actions -> *Build releases*). Install v4 (v2 and v3 are the same with `v2` / `v3`); each version has its own app name, so they never overwrite each other:
 ```bash
 cd ~/Downloads && curl -L -o CrossyRoad-v4-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/v4/CrossyRoad-v4-mac.zip && ditto -x -k CrossyRoad-v4-mac.zip /Applications && xattr -cr "/Applications/Crossy Road v4.app" && open "/Applications/Crossy Road v4.app"
 ```
-The **final** app (class presentation): `cd ~/Downloads && curl -L -o CrossyRoad-final-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/final/CrossyRoad-final-mac.zip && ditto -x -k CrossyRoad-final-mac.zip /Applications && xattr -cr "/Applications/Crossy Road Final.app" && open "/Applications/Crossy Road Final.app"`
+The **final** app (class presentation): `cd ~/Downloads && curl -L -o COSC4368-Final-Project-mac.zip https://github.com/IRVIIINS/crossy-road-rl/releases/download/final/COSC4368-Final-Project-mac.zip && ditto -x -k COSC4368-Final-Project-mac.zip /Applications && xattr -cr "/Applications/COSC 4368 Final Project.app" && open "/Applications/COSC 4368 Final Project.app"`
 
 v3 and v4 are in `desktop/` (Electron window around `expo-game/`). Menu: **YOU vs AI** (you on the left, the AI on the right, same road) and **AI vs AI** (two AIs, one road each). The levels are built by the level-maker AI. Keys: 1 / 2 pick a mode, 0 opens Settings (v4), R restart, Esc back to the menu.
 

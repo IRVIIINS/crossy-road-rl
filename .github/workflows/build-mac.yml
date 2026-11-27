@@ -144,21 +144,28 @@ jobs:
           npx expo export --platform web
           rm -rf ../desktop/web
           cp -R dist ../desktop/web
-      - name: Package Crossy Road Final.app (Electron)
+      - name: Package COSC 4368 Final Project.app (Electron)
         working-directory: desktop
         run: |
+          # app icon: 1024px PNG -> .icns
+          mkdir -p icon.iconset
+          for s in 16 32 128 256 512; do
+            sips -z $s $s icon.png --out icon.iconset/icon_${s}x${s}.png >/dev/null
+            sips -z $((s*2)) $((s*2)) icon.png --out icon.iconset/icon_${s}x${s}@2x.png >/dev/null
+          done
+          iconutil -c icns icon.iconset -o icon.icns
           npm install --no-audit --no-fund --save-dev electron@33 @electron/packager
-          npx @electron/packager . "Crossy Road Final" --platform=darwin --arch=arm64 \
-            --out=out --overwrite --ignore="^/out" --ignore="^/web"
-          APP="out/Crossy Road Final-darwin-arm64/Crossy Road Final.app"
+          npx @electron/packager . "COSC 4368 Final Project" --platform=darwin --arch=arm64 \
+            --icon=icon.icns --out=out --overwrite --ignore="^/out" --ignore="^/web" --ignore="^/icon"
+          APP="out/COSC 4368 Final Project-darwin-arm64/COSC 4368 Final Project.app"
           # the packager drops *.obj files (the 3D models), so copy the web bundle in by hand
           cp -R web "$APP/Contents/Resources/web"
           test "$(find "$APP/Contents/Resources/web" -name '*.obj' | wc -l)" -gt 20
           codesign --force --deep --sign - "$APP"
-          ditto -c -k --keepParent "$APP" ../CrossyRoad-final-mac.zip
+          ditto -c -k --keepParent "$APP" ../COSC4368-Final-Project-mac.zip
       - name: Publish final
         run: |
           gh release delete final --cleanup-tag -y || true
-          gh release create final CrossyRoad-final-mac.zip --target "${GITHUB_SHA}" \
-            --title "Crossy Road Final - 3D game + AI + PC training rounds 1-5 (Mac app)" \
+          gh release create final COSC4368-Final-Project-mac.zip --target "${GITHUB_SHA}" \
+            --title "COSC 4368 Final Project - Crossy Road RL (Mac app)" \
             --notes "Native Apple Silicon Mac app: the Expo Crossy Road 3D game with the AI autopilot. Menu: 1 = YOU vs AI, 2 = AI vs AI, 3 = TRAINING BLOCKS (every trained player, rounds 1-5 + in-app), 0 = Settings. Default player: round 5. Game menu: Cmd+P toggles the AI."
